@@ -42,7 +42,12 @@ bin/archive query filter --bright-max 0.15 --scope archive     # dark things I r
 bin/archive query like lufs-1c4541c1 --k 5                      # more like this one
 bin/archive query text "dark metallic drone"                   # (CLAP in prod; heuristic on melstats-v0)
 
-# 3. serve the read side on the tailnet (front door for the ADJ surface / Amacher)
+# 3. the ADJ front door — a morning surface + the interaction log (the flywheel)
+bin/archive surface --k 9 --session morning        # ~9 candidates: temporal+relevance+novelty+wildcard
+bin/archive act lufs-abb199ce star                  # star / use / played / skip / more_like_this
+bin/archive surface --k 9 --session morning        # now pulls "relevance:like-starred" neighbours
+
+# 4. serve the read side on the tailnet (GET /api/surface, POST /api/act, /hook, /waveform, /stream)
 bin/archive serve --host 0.0.0.0 --port 8788
 ```
 
@@ -53,4 +58,4 @@ Full first-time walkthrough: **[docs/01-first-run.md](docs/01-first-run.md)**.
 v0 scaffold. The `embed` stage ships `melstats-v0` (a dependency-light stand-in behind the
 CLAP **vector contract**) so the loop runs anywhere; swap in LAION-CLAP / MuQ-MuLan on klaxon
 without touching the schema. `bpm`/`key` are deferred (librosa/essentia or the sononym DuckDB
-warm-start). The ADJ surface + learned ranker are the next build on top of `serve` + `interaction_log`.
+warm-start). The **ADJ surface + interaction log are live** (`surface.py` / `actlog.py`) — a transparent weighted blend, no learned model yet; the log accrues from day one so a ranker/bandit can be fit later. Next: real CLAP on klaxon + the Amacher frontend over `serve`.
