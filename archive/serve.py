@@ -15,7 +15,9 @@ Endpoints (stub):
   GET /stream/<catalog>               full take, HTTP range (on-demand only)
 The ADJ surface + the typed interaction log (POST /api/act) are the next build on top.
 """
-import os, json, sqlite3, argparse, math
+import os, json, sqlite3, argparse, math, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import surface as _surface, actlog as _actlog
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse, parse_qs
 
@@ -63,7 +65,22 @@ class H(BaseHTTPRequestHandler):
             return self._json(out[:int(qs.get("k",["5"])[0])])
         if len(parts)==2 and parts[0]=="hook": return self._file("hook_path",parts[1],"audio/wav")
         if len(parts)==2 and parts[0]=="waveform": return self._file("waveform_path",parts[1],"image/png")
+        if u.path=="/api/surface":
+            con=sqlite3.connect(DB); 
+            rows=_surface.surface(con, int(qs.get("k",["9"])[0]), qs.get("session",["default"])[0], qs.get("scope",["archive"])[0])
+            return self._json(rows)
         if len(parts)==2 and parts[0]=="stream": return self._file("path",parts[1],"audio/wav")
+        self._json({"error":"unknown route"},404)
+    def do_POST(self):
+        u=urlparse(self.path)
+        if u.path=="/api/act":
+            ln=int(self.headers.get("Content-Length","0") or 0)
+            try: body=json.loads(self.rfile.read(ln) or b"{}")
+            except Exception: return self._json({"error":"bad json"},400)
+            con=sqlite3.connect(DB); sha=_actlog.sha_for_catalog(con, body.get("catalog",""))
+            if not sha: return self._json({"error":"unknown catalog"},404)
+            _actlog.log_event(con, body.get("action","played"), sha, body.get("session","default"))
+            return self._json({"ok":True,"action":body.get("action"),"catalog":body.get("catalog")})
         self._json({"error":"unknown route"},404)
     def log_message(self,*a): pass
 
