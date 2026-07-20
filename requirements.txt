@@ -1,0 +1,8 @@
+# v0 core is stdlib-only (sqlite3, http.server) + numpy for the query math.
+numpy>=1.26
+# prod adds (on klaxon, via uv/venv — NOT required for the v0 catalog+query loop):
+#   sqlite-vec        # vec0 virtual table for fast filtered ANN
+#   laion-clap        # the v0 production embedder (or muq-mulan)
+#   librosa           # bpm/key/spectral features (or reuse the sononym DuckDB warm-start)
+#   duckdb            # read the sononym warm-start (reuse-and-verify)
+#   pyacoustid        # chromaprint transcode-dedup (needs the fpcalc binary)

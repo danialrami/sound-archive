@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# thin dispatcher: archive <ingest|query|serve> ...
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cmd="$1"; shift || true
+case "$cmd" in
+  ingest) exec python3 "$here/archive/ingest_batch.py" "$@" ;;
+  query)  exec python3 "$here/archive/query.py" "$@" ;;
+  serve)  exec python3 "$here/archive/serve.py" "$@" ;;
+  *) echo "usage: archive <ingest|query|serve> ..."; exit 1 ;;
+esac
