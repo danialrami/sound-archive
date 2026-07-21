@@ -1,66 +1,67 @@
-# web — sound-archive frontend (design treatment)
+# web — sound-archive frontend
 
 The front door to the archive: **the galaxy** — a 3D projection of the vector
 space with two toggleable looks, **Cloud** and **Graph**, plus the **Today**
 (surface) and **Search** views and an `archive | all` scope switch.
 
-**Status: design treatment.** It runs on *synthesised data against the real
-`serve` API shapes* so it is alive without klaxon — reviewable and iterable now;
-wiring it to the live `serve` is the next step. Daniel picked Cloud + Graph from
-the three-direction treatment; this is that final.
+## Live + demo — one file, auto-detecting
 
-## What's here
+`index.html` is self-contained (**no build step, no CDN**) and runs in two modes,
+chosen automatically at load:
 
-- `index.html` — self-contained, **no build step, no CDN**. A true-3D
-  point-cloud engine in **Canvas2D** (orbit / zoom / perspective / depth-cue /
-  pick), chosen deliberately so *preview == live* and the render is verifiable
-  in a sandbox. Waveform preview + hook/stream playback are **synthesised
-  in-browser** (per-cluster DSP archetypes — drones hum, piano arpeggiates,
-  metallic rings, air hisses) so the detail panel is testable today; on klaxon
-  these map to `/hook`, `/stream`, `/waveform`.
+- **Live** — when a real sound-archive `serve` is reachable (same-origin, or
+  `?api=<base>`), confirmed by the `GET /api/stats` `{total, by_scope}` shape.
+  All data, waveforms, and audio come from `serve`.
+- **Demo** — otherwise, a synthesised archive drives everything so the page is
+  alive standalone (e.g. the published preview). Force it with `?demo=1`.
+
+The renderer is a true-3D point-cloud engine in **Canvas2D** (orbit / zoom /
+perspective / depth-cue / pick), chosen so *preview == live* and the render is
+verifiable in a sandbox. At real 10²–10⁵ scale, swap to Three.js instanced
+points + LOD — identical projection math and API contract.
+
+## Endpoints consumed (Ciani's contract, sound-archive #1 + #3)
+
+| Endpoint | Use |
+|---|---|
+| `GET /api/points?scope=archive\|reference` | the galaxy; both scopes loaded up front so scope-toggle + neighbour clicks resolve locally |
+| `GET /api/surface?k=9&session=morning&scope=archive` | Today cards (+ `why` tags) |
+| `GET /api/like/<cat>?k=6` | neighbours (full-dim; carries `cluster`,`brightness`,`spectral_centroid_hz`) |
+| `GET /api/query?scope=&bright_max=&limit=` | Search (text + duration filtered client-side until CLAP text tower) |
+| `GET /api/waveform/<cat>?bins=<W>` | detail waveform — real peaks + `peak_dbfs` + `integrated_lufs`, drawn on-brand |
+| `GET /hook/<cat>` · `/stream/<cat>` | audition (hook) + full stream |
+| `POST /api/act {catalog,action,session}` | star / use / skip / played → the interaction log |
+
+**3D is navigation only** — retrieval stays full-dim via `/api/like` (neighbours
+are *not* the projection-nearest points).
 
 ## The looks
 
 - **Cloud** — deep-space: recordings as stars, timbral families as
   constellations, a slow reverent orbit.
 - **Graph** — a precise scatter inside a labelled bounding cube
-  (DARK↔BRIGHT · LOW↔HIGH · TONAL↔NOISY). Data-forward; retrieval stays honest
-  (neighbours from `/api/like`, not projection-nearest).
+  (DARK↔BRIGHT · LOW↔HIGH · TONAL↔NOISY). Data-forward.
 
-## Views (shared)
-
-- **Galaxy** — the hero, from `GET /api/points`.
-- **Today** — `GET /api/surface?k=9`, each card tagged with *why* it surfaced
-  (temporal / relevance:like-starred / novelty:cold / wildcard).
-- **Search** — `GET /api/query` filters + a text box (real text→audio lands with
-  CLAP's text tower on klaxon).
-- **Interaction log** — a floating, draggable, minimise/close panel; every
-  star / use / skip / played posts to `POST /api/act` and appends here (the
-  flywheel's fuel).
+Both currently colour by `cluster`. Per Ciani's note, `cluster` is a projection
+artifact (stable until re-project) while `brightness` is the intrinsic axis — a
+brightness ramp for Graph's DARK↔BRIGHT axis is a nice future toggle.
 
 ## Deep links
 
-`?look=cloud|graph` · `?view=galaxy|today|search` · `?scope=archive|all`
-(work when the file is served directly, e.g. from `serve`).
+`?look=cloud|graph` · `?view=galaxy|today|search` · `?scope=archive|all` ·
+`?demo=1` · `?api=<base>` (work when served directly, e.g. from `serve`).
 
-## To wire to live `serve` (asks for the engine side)
+## To verify on live `serve` (for Ciani, during the static mount)
 
-1. **Peaks-JSON waveform** — e.g. `GET /api/waveform/<cat>?bins=800 →
-   {peaks:[[min,max]…], rms:[…], dur, peak_dbfs, integrated_lufs}` so the
-   waveform is drawn on-brand / cluster-tinted / resize-crisp (the lufs-recorder
-   scope treatment) instead of embedding a fixed-palette server PNG. Keep the
-   PNG as a cheap thumbnail fallback.
-2. Add `cluster` (ideally `brightness`) to `/api/like` rows so neighbour dots
-   colour correctly without a client-side join back to `/api/points`.
-3. Confirm CORS on `/hook` + `/stream` if the frontend is ever served
-   cross-origin (non-blocking on the tailnet / same-origin).
+The live path is written to the #3 contract but was authored against synthesised
+shapes (no serve in Amacher's sandbox). Worth a smoke-test when you mount `web/`:
 
-Then: replace the synthesised `API` / `buildArchive` block in `index.html` with
-`fetch()` calls to `serve` — the data shapes already match, so it's a swap, not
-a rewrite. At the real 10²–10⁵ scale, move the renderer to Three.js instanced
-points + LOD (identical projection math and API contract).
-
----
+1. `GET /api/points?scope=reference` — the frontend loads it to complete the
+   in-memory model; if `reference` isn't a valid scope value it's caught and the
+   galaxy just runs archive-only. Confirm the scope value.
+2. `/api/query` — the UI passes `scope`, `bright_max`, `limit`; text + max-duration
+   are filtered client-side (server text→audio lands with the CLAP text tower).
+3. `/hook` + `/stream` play via an `<audio>` element (needs the CORS you added).
 
 Built by **Amacher**. Design record: `danialrami/agent-knowledge` →
 `docs/product/sound-archive/`.
