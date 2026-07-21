@@ -1,14 +1,17 @@
 #!/usr/bin/env bash
 # thin dispatcher: archive <ingest|query|serve> ...
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# Prefer the repo-local venv (created by setup.sh) so numpy is present without touching system
+# Python (PEP 668). Putting .venv/bin on PATH also gives the workchain engine's python3 numpy.
+if [ -x "$here/.venv/bin/python3" ]; then export PATH="$here/.venv/bin:$PATH"; PY="$here/.venv/bin/python3"; else PY="python3"; fi
 cmd="$1"; shift || true
 case "$cmd" in
-  ingest) exec python3 "$here/archive/ingest_batch.py" "$@" ;;
-  query)  exec python3 "$here/archive/query.py" "$@" ;;
-  serve)  exec python3 "$here/archive/serve.py" "$@" ;;
-  surface) exec python3 "$here/archive/surface.py" "$@" ;;
-  act)    exec python3 "$here/archive/actlog.py" "$@" ;;
-  points) exec python3 "$here/archive/points.py" points "$@" ;;
-  project) exec python3 "$here/archive/points.py" project "$@" ;;
+  ingest) exec "$PY" "$here/archive/ingest_batch.py" "$@" ;;
+  query)  exec "$PY" "$here/archive/query.py" "$@" ;;
+  serve)  exec "$PY" "$here/archive/serve.py" "$@" ;;
+  surface) exec "$PY" "$here/archive/surface.py" "$@" ;;
+  act)    exec "$PY" "$here/archive/actlog.py" "$@" ;;
+  points) exec "$PY" "$here/archive/points.py" points "$@" ;;
+  project) exec "$PY" "$here/archive/points.py" project "$@" ;;
   *) echo "usage: archive <ingest|query|serve|surface|act|points|project> ..."; exit 1 ;;
 esac

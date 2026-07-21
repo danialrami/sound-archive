@@ -25,10 +25,29 @@ Ingest **stages are Workchain components** (they inherit the verifier). The libr
 the store as system-of-record, the serve API, the ADJ surface, and the *irreplaceable*
 interaction log — is this app. See `docs/product/sound-archive/07-ciani-engineering-addendum` (KB).
 
+## Fastest start — one script (macOS-friendly, no system pip)
+
+`setup.sh` provisions a repo-local `.venv`, wires it through the workchain engine too, and runs
+the whole first-time flow. No `pip install` into system Python (fixes the macOS PEP-668 wall).
+
+```bash
+cd sound-archive
+./setup.sh --help                                  # full reference (agent-friendly)
+
+# whole first-time flow: env → CLAP provision → smoke(1 file) → ingest → project → serve
+./setup.sh first-run \
+  --samples ~/Samples/Samples/sampleLibrary/lufs-recorder \
+  --embedder clap --fresh --serve
+# → open http://127.0.0.1:8788/   (the galaxy auto-detects the live serve and fills with your sound)
+```
+
+Composable stages (each is its own command, all venv-aware): `doctor`, `provision-clap`,
+`ingest`, `project`, `serve`. See `./setup.sh --help`.
+
 ## Quick start
 
 ```bash
-pip install numpy                       # v0 core is stdlib + numpy
+# (or do it by hand — setup.sh does all of this for you inside ./.venv)
 export ARCHIVE_DB=~/.sound-archive/archive.db
 
 # 1. ingest ONLY your own recordings first (scope=archive); tag the libraries reference
