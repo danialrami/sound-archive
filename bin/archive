@@ -8,5 +8,6 @@ case "$cmd" in
   serve)  exec python3 "$here/archive/serve.py" "$@" ;;
   surface) exec python3 "$here/archive/surface.py" "$@" ;;
   act)    exec python3 "$here/archive/actlog.py" "$@" ;;
+  points) exec python3 "$here/archive/points.py" "$@" ;;
   *) echo "usage: archive <ingest|query|serve|surface|act> ..."; exit 1 ;;
 esac

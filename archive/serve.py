@@ -13,11 +13,14 @@ Endpoints (stub):
   GET /hook/<catalog>                 the pre-rendered hook clip (audio/wav)
   GET /waveform/<catalog>             the waveform PNG
   GET /stream/<catalog>               full take, HTTP range (on-demand only)
+  GET /api/points?scope=&k_clusters=  3D galaxy projection (PCA-3D + k-means clusters)
+  GET /api/surface?k=&session=&scope= ADJ morning surface (weighted blend)
+  POST /api/act {catalog,action,session}   log a typed interaction
 The ADJ surface + the typed interaction log (POST /api/act) are the next build on top.
 """
 import os, json, sqlite3, argparse, math, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import surface as _surface, actlog as _actlog
+import surface as _surface, actlog as _actlog, points as _points
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse, parse_qs
 
@@ -65,6 +68,9 @@ class H(BaseHTTPRequestHandler):
             return self._json(out[:int(qs.get("k",["5"])[0])])
         if len(parts)==2 and parts[0]=="hook": return self._file("hook_path",parts[1],"audio/wav")
         if len(parts)==2 and parts[0]=="waveform": return self._file("waveform_path",parts[1],"image/png")
+        if u.path=="/api/points":
+            con=sqlite3.connect(DB)
+            return self._json(_points.build_points(con, qs.get("scope",[None])[0], int(qs.get("k_clusters",["8"])[0])))
         if u.path=="/api/surface":
             con=sqlite3.connect(DB); 
             rows=_surface.surface(con, int(qs.get("k",["9"])[0]), qs.get("session",["default"])[0], qs.get("scope",["archive"])[0])
