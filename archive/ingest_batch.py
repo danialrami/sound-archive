@@ -38,6 +38,13 @@ def quality_key(p):
     except OSError: sz=0
     return (1 if ext in LOSSLESS else 0, sz)  # prefer lossless, then bigger
 
+def _existing_models(db):
+    if not os.path.exists(db): return set()
+    import sqlite3 as _s; c=_s.connect(db)
+    try: return {r[0] for r in c.execute("SELECT DISTINCT embed_model FROM assets") if r[0]}
+    except Exception: return set()
+    finally: c.close()
+
 def already_indexed(db):
     if not os.path.exists(db): return set()
     c=sqlite3.connect(db)
@@ -51,11 +58,19 @@ def main():
     ap.add_argument("--workchain", required=True, help="path to lufs-workchain checkout")
     ap.add_argument("--db", default=os.environ.get("ARCHIVE_DB") or os.path.expanduser("~/.sound-archive/archive.db"))
     ap.add_argument("--scope-map", nargs="*", default=[], help='folder=scope, e.g. Komplete=reference Orchs=reference')
+    ap.add_argument("--embedder", choices=["melstats","clap"], default="melstats",
+                    help="melstats = light default (archive-ingest.yaml); clap = LAION-CLAP (archive-ingest-clap.yaml; requires embed_clap provisioned on klaxon)")
+    ap.add_argument("--chain", help="explicit chain filename under <workchain>/chains (overrides --embedder)")
     ap.add_argument("--work", default=os.path.expanduser("~/.sound-archive/work"))
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--dry-run", action="store_true")
     a=ap.parse_args()
     rules=[(kv.split("=",1)[0], kv.split("=",1)[1]) for kv in a.scope_map if "=" in kv]
+    _existing=_existing_models(a.db)
+    _want="laion-clap-630k" if a.embedder=="clap" else "melstats-v0"
+    if _existing and _want not in _existing:
+        print(f"WARNING: index already holds vectors from {sorted(_existing)} but you're ingesting {_want}. "
+              f"Mixed embedding dims break cosine similarity — use a FRESH --db for a CLAP index, or re-embed all.")
 
     # 1-2. scan + scope
     files=[]
@@ -63,7 +78,7 @@ def main():
         for fn in fns:
             if os.path.splitext(fn)[1].lower() in AUDIO:
                 p=os.path.join(dp,fn); files.append((p, scope_for(p, rules)))
-    print(f"scan: {len(files)} standard-audio files under {a.root}")
+    print(f"scan: {len(files)} standard-audio files under {a.root}  (embedder={a.embedder})")
 
     # 3. dedup L1 by content hash → keeper per group
     groups={}
@@ -90,7 +105,10 @@ def main():
         return
 
     engine=os.path.join(a.workchain,"engine","workchain-engine.sh")
-    chain=os.path.join(a.workchain,"chains","archive-ingest.yaml")
+    chain_name = a.chain or ("archive-ingest-clap.yaml" if a.embedder=="clap" else "archive-ingest.yaml")
+    chain=os.path.join(a.workchain,"chains",chain_name)
+    if not os.path.exists(chain):
+        sys.exit(f"chain not found: {chain} (pull the latest lufs-workchain; clap chain shipped in #23)")
     os.makedirs(a.work, exist_ok=True); os.makedirs(os.path.dirname(a.db) or ".", exist_ok=True)
     env=dict(os.environ, ARCHIVE_DB=a.db)
     ok=fail=0
