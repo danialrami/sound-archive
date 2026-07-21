@@ -415,7 +415,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
   <div class="about-card">
     <div class="sec-label">design directions · sound-archive frontend</div>
     <h2>The galaxy<span class="dot">.</span></h2>
-    <p>The front door to the sound archive — the librarian over your own recordings. Two toggleable directions on one page (<b>Cloud</b> and <b>Graph</b>), both built on a true 3D projection of the vector space, running on <b>synthesised data against the real serve API shapes</b> so it's alive before klaxon is wired.</p>
+    <p>The front door to the sound archive — the librarian over your own recordings. Two toggleable directions on one page (<b>Cloud</b> and <b>Graph</b>), both built on a true 3D projection of the vector space. It runs on <b>synthesised data</b> standalone, and <b>auto-connects to the live serve</b> on klaxon the moment it's reachable — same page, real archive.</p>
     <div class="loop">capture → catalog → surface → act / vouch → better surface</div>
     <p><b>Pick a direction</b> (top-left), then flip through the three views:</p>
     <ul>
@@ -444,7 +444,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;heigh
 
 /* ---------- palette / clusters ---------- */
 const CL_COLORS = ['#78BEBA','#9FC1D0','#E7B225','#D35233','#C8654A','#8C8A6B','#5FA8A3','#B9D9D6'];
-const CLUSTERS = [
+let CLUSTERS = [
   {name:'SUB & DRONE',   kind:'drone',    bright:0.10, xbias:-0.72},
   {name:'PADS & STRINGS',kind:'pad',      bright:0.30, xbias:-0.42},
   {name:'PIANO & KEYS',  kind:'keys',     bright:0.44, xbias:-0.10},
@@ -518,12 +518,12 @@ function buildArchive(){
   }
   return assets;
 }
-const ARCHIVE=buildArchive();
-const BY_CAT={}; ARCHIVE.forEach(a=>BY_CAT[a.catalog_number]=a);
-const clusterCounts=CLUSTERS.map((_,c)=>ARCHIVE.filter(a=>a.cluster===c).length);
+let ARCHIVE=buildArchive();
+let BY_CAT={}; ARCHIVE.forEach(a=>BY_CAT[a.catalog_number]=a);
+let clusterCounts=CLUSTERS.map((_,c)=>ARCHIVE.filter(a=>a.cluster===c).length);
 
-/* ---------- mock serve API (real shapes) ---------- */
-const API={
+/* ---------- DEMO serve (synthesised, real shapes) ---------- */
+const DEMO={
   stats(){const by={archive:0,reference:0};ARCHIVE.forEach(a=>by[a.scope]++);return{total:ARCHIVE.length,by_scope:by};},
   points(scope){const pts=ARCHIVE.filter(a=>scope==='all'||a.scope==='archive');
     return{points:pts,n:pts.length,clusters:CLUSTERS.length,projection:'pca-3d',model:'melstats-v0',dims:64};},
@@ -563,6 +563,50 @@ const API={
 };
 function cos(a,b){let d=0,na=0,nb=0;for(let i=0;i<a.length;i++){d+=a[i]*b[i];na+=a[i]*a[i];nb+=b[i]*b[i];}return d/(Math.sqrt(na*nb)+1e-9);}
 
+/* ---------- LIVE / DEMO mode ----------
+   Auto-detects a real sound-archive `serve` (same-origin, or ?api=<base>), confirmed by the
+   /api/stats {total,by_scope} shape. When live, all data + waveforms + audio come from serve;
+   otherwise the synthesised DEMO drives everything so the page is alive standalone.
+   ?demo=1 forces demo. Contract per Ciani (sound-archive#3). */
+let LIVE=false, API_BASE='', MODEL_META={projection:'pca-3d',model:'melstats-v0',dims:64,clusters:CLUSTERS.length};
+async function apiGet(path){const r=await fetch(API_BASE+path,{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
+async function detectMode(){
+  const p=new URLSearchParams(location.search);
+  if(p.get('demo')==='1'){LIVE=false;return;}
+  if(p.get('api')){API_BASE=p.get('api').replace(/\/$/,'');}
+  try{const c=new AbortController();const to=setTimeout(()=>c.abort(),2500);
+    const r=await fetch(API_BASE+'/api/stats',{cache:'no-store',signal:c.signal});clearTimeout(to);
+    if(r.ok){const s=await r.json(); if(s && s.by_scope && typeof s.total==='number') LIVE=true;} // confirmed sound-archive serve
+  }catch(e){LIVE=false;}
+}
+async function buildModel(){
+  if(!LIVE) return;                                   // demo model already built at load
+  const pj=await apiGet('/api/points?scope=archive&k_clusters=8');
+  let ref=[]; try{ ref=(await apiGet('/api/points?scope=reference&k_clusters=8')).points||[]; }catch(e){}
+  ARCHIVE=[...(pj.points||[]),...ref].map((a,i)=>({i, ...a}));
+  MODEL_META={projection:pj.projection||'pca-3d',model:pj.model||'clap',dims:pj.dims||512,clusters:pj.clusters||8};
+  CLUSTERS=Array.from({length:MODEL_META.clusters},(_,i)=>({name:'CLUSTER '+String(i+1).padStart(2,'0'),kind:'live'}));
+  BY_CAT={}; ARCHIVE.forEach(a=>BY_CAT[a.catalog_number]=a);
+  clusterCounts=CLUSTERS.map((_,c)=>ARCHIVE.filter(a=>a.cluster===c).length);
+}
+/* unified async API: fetch live, else the synthesised DEMO. Points filtered from the
+   in-memory model in both modes (all scopes are loaded up front), so scope + neighbour
+   clicks resolve without extra round-trips. */
+const API={
+  async points(scope){ const pts=ARCHIVE.filter(a=>scope==='all'||a.scope==='archive');
+    return {points:pts,n:pts.length,clusters:MODEL_META.clusters,projection:MODEL_META.projection,model:MODEL_META.model,dims:MODEL_META.dims}; },
+  async surface(k=9){ if(LIVE){ try{ return await apiGet(`/api/surface?k=${k}&session=morning&scope=archive`); }catch(e){} } return DEMO.surface(k); },
+  async like(cat,k=6){ if(LIVE){ try{ return await apiGet(`/api/like/${cat}?k=${k}`); }catch(e){} } return DEMO.like(cat,k); },
+  async query(scope,brightMax,durMax,text){
+    if(LIVE){ try{ const sc=(scope==='any')?'':scope;
+      let r=await apiGet(`/api/query?scope=${sc}&bright_max=${brightMax}&limit=300`);
+      if(durMax<999) r=r.filter(a=>a.duration_s==null||a.duration_s<=durMax);
+      if(text&&text.trim()){const t=text.toLowerCase().split(/\s+/);r=r.filter(a=>t.some(w=>(a.filename||'').toLowerCase().includes(w)));}
+      return r; }catch(e){} }
+    return DEMO.query(scope,brightMax,durMax,text); },
+  act(cat,action){ if(LIVE){ try{ fetch(API_BASE+'/api/act',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({catalog:cat,action,session:'morning'})}); }catch(e){} } return {ok:true}; }
+};
+
 /* interaction state */
 const STARRED=new Set(); const TOUCH={}; const LOGEV=[];
 
@@ -570,7 +614,7 @@ const STARRED=new Set(); const TOUCH={}; const LOGEV=[];
    AUDIO — procedural synthesis per asset (fills a Float32Array = real waveform)
    ========================================================================== */
 const SR=22050;
-let actx=null, curSource=null, master=null;
+let actx=null, curSource=null, master=null, curAudioEl=null;
 const bufCache={};
 function armAudio(){ if(!actx){ actx=new (window.AudioContext||window.webkitAudioContext)(); master=actx.createGain(); master.gain.value=0.9; master.connect(actx.destination);} if(actx.state==='suspended')actx.resume(); }
 
@@ -633,27 +677,41 @@ function synth(asset){
   const g=peak>0.98?0.98/peak:1;for(let n=0;n<N;n++)out[n]=Math.tanh(out[n]*g*1.05);
   const buf={data:out,N,dur,sr:SR}; bufCache[asset.catalog_number]=buf; return buf;
 }
-function playAsset(asset,loop){
-  armAudio(); stopAudio();
+async function playAsset(asset,loop){
+  stopAudio(); logAct(asset.catalog_number,'played');
+  if(LIVE){ // stream the server's real hook / full take
+    try{ const el=new Audio(API_BASE+(loop?`/stream/${asset.catalog_number}`:`/hook/${asset.catalog_number}`));
+      el.loop=!!loop; el.crossOrigin='anonymous'; curAudioEl=el; await el.play(); return;
+    }catch(e){ return; } // no synth fallback in live (server assets have no synth params)
+  }
+  armAudio();
   const buf=synth(asset);
   const ab=actx.createBuffer(1,buf.N,SR); ab.copyToChannel(buf.data,0);
   const src=actx.createBufferSource(); src.buffer=ab; src.loop=!!loop;
   const g=actx.createGain(); g.gain.value=0.85; src.connect(g); g.connect(master); src.start();
   curSource=src;
-  logAct(asset.catalog_number,'played');
 }
-function stopAudio(){ if(curSource){try{curSource.stop();}catch(e){} curSource=null;} }
+function stopAudio(){ if(curSource){try{curSource.stop();}catch(e){} curSource=null;} if(curAudioEl){try{curAudioEl.pause();}catch(e){} curAudioEl=null;} }
 
 /* waveform peaks for drawing */
 function peaks(buf,W){const {data,N}=buf;const step=Math.floor(N/W);const mins=new Float32Array(W),maxs=new Float32Array(W),rms=new Float32Array(W);
   for(let i=0;i<W;i++){let mn=1,mx=-1,sq=0;const s=i*step;for(let j=0;j<step;j++){const v=data[s+j]||0;if(v<mn)mn=v;if(v>mx)mx=v;sq+=v*v;}mins[i]=mn;maxs[i]=mx;rms[i]=Math.sqrt(sq/step);}
   return{mins,maxs,rms};}
-function drawWave(canvas,asset,opts){
+async function drawWave(canvas,asset,opts){
   opts=opts||{}; const dpr=Math.min(2,window.devicePixelRatio||1);
   const w=canvas.clientWidth,h=canvas.clientHeight; canvas.width=w*dpr;canvas.height=h*dpr;
   const ctx=canvas.getContext('2d'); ctx.scale(dpr,dpr); ctx.clearRect(0,0,w,h);
-  const buf=synth(asset); const W=Math.floor(w); const pk=peaks(buf,W); const mid=h/2;
-  const col=opts.color||'#78BEBA';
+  const W=Math.floor(w); const mid=h/2; const col=opts.color||'#78BEBA';
+  let mins,maxs,rms,stat=null;
+  if(LIVE){ // real peaks-JSON from serve (Ciani #3): {peaks:[[min,max]…], rms:[…], peak_dbfs, integrated_lufs}
+    try{ const wf=await apiGet(`/api/waveform/${asset.catalog_number}?bins=${W}`);
+      mins=wf.peaks.map(p=>p[0]); maxs=wf.peaks.map(p=>p[1]); rms=wf.rms||maxs.map(v=>Math.abs(v));
+      stat={peakDb:wf.peak_dbfs,lufs:wf.integrated_lufs};
+    }catch(e){ mins=null; }
+  }
+  if(!mins && !LIVE){ const buf=synth(asset); const pk=peaks(buf,W); mins=pk.mins;maxs=pk.maxs;rms=pk.rms; stat=statsOf(buf); }
+  if(!mins){ mins=new Float32Array(W); maxs=new Float32Array(W); rms=new Float32Array(W); } // live fetch failed: flat baseline
+  const N=mins.length, sx=w/N;
   // grid
   ctx.strokeStyle='rgba(251,249,226,0.08)';ctx.lineWidth=1;
   ctx.beginPath();ctx.moveTo(0,mid);ctx.lineTo(w,mid);ctx.stroke();
@@ -661,14 +719,14 @@ function drawWave(canvas,asset,opts){
   // rms fill
   ctx.fillStyle=hexA(col,0.16);
   ctx.beginPath();ctx.moveTo(0,mid);
-  for(let i=0;i<W;i++)ctx.lineTo(i,mid-pk.rms[i]*mid*0.95);
-  for(let i=W-1;i>=0;i--)ctx.lineTo(i,mid+pk.rms[i]*mid*0.95);
+  for(let i=0;i<N;i++)ctx.lineTo(i*sx,mid-rms[i]*mid*0.95);
+  for(let i=N-1;i>=0;i--)ctx.lineTo(i*sx,mid+rms[i]*mid*0.95);
   ctx.closePath();ctx.fill();
   // min/max trace
   ctx.strokeStyle=col;ctx.lineWidth=1;ctx.globalAlpha=0.92;
-  for(let i=0;i<W;i++){ctx.beginPath();ctx.moveTo(i+0.5,mid-pk.maxs[i]*mid*0.95);ctx.lineTo(i+0.5,mid-pk.mins[i]*mid*0.95);ctx.stroke();}
+  for(let i=0;i<N;i++){ctx.beginPath();ctx.moveTo(i*sx+0.5,mid-maxs[i]*mid*0.95);ctx.lineTo(i*sx+0.5,mid-mins[i]*mid*0.95);ctx.stroke();}
   ctx.globalAlpha=1;
-  return statsOf(buf);
+  return stat;
 }
 function statsOf(buf){let peak=0,sq=0;for(let n=0;n<buf.N;n++){const x=Math.abs(buf.data[n]);if(x>peak)peak=x;sq+=buf.data[n]*buf.data[n];}
   const rms=Math.sqrt(sq/buf.N);const pdb=20*Math.log10(peak+1e-9);const lufs=20*Math.log10(rms+1e-9)-0.7;
@@ -684,7 +742,7 @@ let W=0,H=0,DPR=1;
 const cam={yaw:0.5,pitch:-0.35,dist:3.1,zoom:1,auto:0.0016};
 let LOOK='cloud';
 let SCOPE='archive';
-let pointsData=API.points('archive').points;
+let pointsData=[];
 let selected=null, neighbors=new Set(), hoverCluster=-1;
 
 const THEMES={
@@ -758,7 +816,7 @@ function drawPoint(sx,sy,baseR,col,alpha,a,th,depthT){
   const sel=selected===a.catalog_number;
   const nb=neighbors.has(a.catalog_number);
   const hc=(hoverCluster>=0 && a.cluster===hoverCluster);
-  let R=baseR*(th===THEMES.instrument?1.2:1.5);
+  let R=baseR*(th.cube?1.2:1.5);
   if(sel)R*=2.1; else if(nb)R*=1.7; else if(hc)R*=1.4;
   // glow
   if(th.glow>0.01 && (alpha>0.25)){
@@ -767,7 +825,7 @@ function drawPoint(sx,sy,baseR,col,alpha,a,th,depthT){
     gr.addColorStop(1,hexA(col,0));
     g.fillStyle=gr;g.beginPath();g.arc(sx,sy,R*th.glow,0,7);g.fill();
   }
-  if(th===THEMES.instrument){
+  if(th.cube){
     // square, precise
     g.globalAlpha=alpha;g.fillStyle=col;g.fillRect(sx-R,sy-R,R*2,R*2);
     if(sel||nb){g.strokeStyle=col;g.lineWidth=1;g.globalAlpha=1;g.strokeRect(sx-R-3,sy-R-3,R*2+6,R*2+6);}
@@ -843,7 +901,7 @@ function pickAt(clientX,clientY){
    ========================================================================== */
 function $(s){return document.querySelector(s);}
 function el(t,c,txt){const e=document.createElement(t);if(c)e.className=c;if(txt!=null)e.textContent=txt;return e;}
-function fmtDur(s){return s<10?s.toFixed(1)+'s':Math.round(s)+'s';}
+function fmtDur(s){if(s==null||isNaN(s))return '—';return s<10?s.toFixed(1)+'s':Math.round(s)+'s';}
 
 /* legend */
 function renderLegend(){
@@ -861,8 +919,9 @@ function renderLegend(){
 }
 /* hud */
 function renderHud(){
-  const s=API.stats();const shown=pointsData.length;
-  $('#gxHud').innerHTML=`<div><b>${shown}</b> points shown</div><div>archive <b>${s.by_scope.archive}</b> · reference <b>${s.by_scope.reference}</b></div><div>proj <b>pca-3d</b> · model <b>melstats-v0</b></div><div>dims <b>64</b> → clusters <b>${CLUSTERS.length}</b></div>`;
+  let ar=0,re=0;for(const a of ARCHIVE){if(a.scope==='reference')re++;else ar++;}
+  const shown=pointsData.length;
+  $('#gxHud').innerHTML=`<div><b>${shown}</b> points shown</div><div>archive <b>${ar}</b> · reference <b>${re}</b></div><div>proj <b>${MODEL_META.projection}</b> · model <b>${MODEL_META.model}</b></div><div>dims <b>${MODEL_META.dims}</b> → clusters <b>${MODEL_META.clusters}</b></div>`;
 }
 function renderCaption(){const c=THEMES[LOOK].caption;$('#gxCaption').innerHTML=`<h1>${c.h}</h1><p>${c.p}</p>`;}
 
@@ -883,16 +942,17 @@ function setView(v){
 function setScope(s){
   SCOPE=s;
   document.querySelectorAll('#scope button').forEach(b=>b.classList.toggle('active',b.dataset.scope===s));
-  pointsData=API.points(s).points; renderHud();
+  pointsData=ARCHIVE.filter(a=>s==='all'||a.scope==='archive'); renderHud();
 }
 
 /* ---------- today ---------- */
 let surfaceCache=null;
-function renderToday(){
+async function renderToday(){
   const grid=$('#todayGrid');grid.innerHTML='';
-  surfaceCache=API.surface(9); const s=API.stats();
-  $('#todayMeta').innerHTML=`${new Date().toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'})}<br>${s.by_scope.archive} in archive scope`;
-  surfaceCache.forEach(a=>{
+  surfaceCache=await API.surface(9);
+  let ar=0;for(const a of ARCHIVE)if(a.scope!=='reference')ar++;
+  $('#todayMeta').innerHTML=`${new Date().toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'})}<br>${ar} in archive scope`;
+  (surfaceCache||[]).forEach(a=>{
     const card=el('div','card');
     const whyClass=a.why.startsWith('temporal')?'temporal':a.why.startsWith('relevance')?'relevance':a.why.startsWith('novelty')?'novelty':'wildcard';
     const why=el('div','why '+whyClass, a.why.replace(':',' · '));
@@ -914,10 +974,10 @@ function pulse(b){b.textContent='❚❚';setTimeout(()=>b.textContent='▶',700)
 
 /* ---------- search ---------- */
 let fScope='archive';
-function runSearch(){
+async function runSearch(){
   const bright=+$('#fBright').value, dur=+$('#fDur').value, txt=$('#searchTxt').value;
   const durMax=dur>=30?999:dur;
-  const res=API.query(fScope,bright,durMax,txt);
+  const res=await API.query(fScope,bright,durMax,txt);
   $('#resCount').textContent=`${res.length} result${res.length!==1?'s':''} · scope ${fScope} · brightness ≤ ${bright.toFixed(2)}${dur<30?' · ≤ '+dur+'s':''}`;
   const list=$('#resList');list.innerHTML='';
   res.slice(0,120).forEach(a=>{
@@ -934,7 +994,7 @@ function runSearch(){
 }
 
 /* ---------- detail panel ---------- */
-function selectAsset(cat,open){
+async function selectAsset(cat,open){
   const a=BY_CAT[cat];if(!a)return;
   selected=cat; TOUCH[a.cluster]=(TOUCH[a.cluster]||0)+1;
   neighbors=new Set();
@@ -945,8 +1005,10 @@ function selectAsset(cat,open){
   $('#dtCat').textContent=a.catalog_number+' · '+a.hook;
   // waveform
   const cv=$('#dtWave');
-  requestAnimationFrame(()=>{const st=drawWave(cv,a,{color:CL_COLORS[a.cluster]});
-    $('#dtWaveRead').innerHTML=`<span>peak ${st.peakDb.toFixed(1)} dBFS</span><span>≈ ${st.lufs.toFixed(1)} LUFS</span><span>${fmtDur(a.duration_s)}</span>`;});
+  requestAnimationFrame(async()=>{const st=await drawWave(cv,a,{color:CL_COLORS[a.cluster]});
+    $('#dtWaveRead').innerHTML = st
+      ? `<span>peak ${st.peakDb!=null&&!isNaN(st.peakDb)?st.peakDb.toFixed(1):'—'} dBFS</span><span>≈ ${st.lufs!=null&&!isNaN(st.lufs)?st.lufs.toFixed(1):'—'} LUFS</span><span>${fmtDur(a.duration_s)}</span>`
+      : `<span>waveform unavailable</span><span></span><span>${fmtDur(a.duration_s)}</span>`;});
   // stats
   $('#dtStats').innerHTML=`
     <div class="stat"><div class="k">Brightness</div><div class="v">${a.brightness.toFixed(2)}</div></div>
@@ -954,8 +1016,8 @@ function selectAsset(cat,open){
     <div class="stat"><div class="k">Duration</div><div class="v">${a.duration_s}<small>s</small></div></div>
     <div class="stat"><div class="k">Coord xyz</div><div class="v" style="font-size:.78rem;font-family:var(--font-mono)">${a.x} ${a.y} ${a.z}</div></div>`;
   // like
-  const nb=API.like(cat,6); const ll=$('#dtLike');ll.innerHTML='';
-  nb.forEach(n=>{neighbors.add(n.catalog_number);
+  const nb=await API.like(cat,6); const ll=$('#dtLike');ll.innerHTML='';
+  (nb||[]).forEach(n=>{neighbors.add(n.catalog_number);
     const row=el('div','like-row');
     const dot=el('span','rdot');dot.style.color=CL_COLORS[n.cluster];dot.style.background=CL_COLORS[n.cluster];row.appendChild(dot);
     row.appendChild(el('div','lname',n.filename));
@@ -1033,15 +1095,21 @@ document.querySelectorAll('#fScope button').forEach(b=>b.addEventListener('click
  addEventListener('mouseout',e=>{if(e.target.closest('[data-hover],button,.card,.row,.leg-item,.like-row,a'))r.classList.remove('hot');});})();
 
 /* ---------- boot ---------- */
-resize(); renderLegend(); renderHud(); renderCaption(); setLook('cloud'); document.body.dataset.look='cloud';
-requestAnimationFrame(frame);
-// deep-link support: ?look=observatory|nebula|instrument &view=galaxy|today|search &scope=archive|all
-(function(){try{const p=new URLSearchParams(location.search);
-  const L=p.get('look');if(L&&THEMES[L])setLook(L);
-  const S=p.get('scope');if(S==='archive'||S==='all')setScope(S);
-  const V=p.get('view');if(V&&['galaxy','today','search'].includes(V))setView(V);
-  if(L||V||p.get('go'))$('#about').classList.remove('open');
-}catch(e){}})();
+async function boot(){
+  await detectMode();                          // live serve? (same-origin or ?api=), else demo
+  try{ await buildModel(); }catch(e){ LIVE=false; }   // live: load points from serve
+  pointsData=ARCHIVE.filter(a=>a.scope==='archive');
+  resize(); renderLegend(); renderHud(); renderCaption(); setLook('cloud'); document.body.dataset.look='cloud';
+  requestAnimationFrame(frame);
+  // deep-link: ?look=cloud|graph & view=galaxy|today|search & scope=archive|all (also ?demo=1, ?api=<base>)
+  try{const p=new URLSearchParams(location.search);
+    const L=p.get('look');if(L&&THEMES[L])setLook(L);
+    const S=p.get('scope');if(S==='archive'||S==='all')setScope(S);
+    const V=p.get('view');if(V&&['galaxy','today','search'].includes(V))setView(V);
+    if(L||V||p.get('go'))$('#about').classList.remove('open');
+  }catch(e){}
+}
+boot();
 </script>
 </body>
 </html>
