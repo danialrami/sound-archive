@@ -124,8 +124,9 @@ ensure_venv(){
     "$VENV/bin/pip" install -q -r "$SA_DIR/requirements.txt" || die "pip install failed in ./.venv"
   fi
   ok "venv ready — $("$PY" -c 'import numpy,sys;print("python",sys.version.split()[0],"· numpy",numpy.__version__)')"
-  # git pushes don't always preserve the executable bit; make our entrypoints runnable.
-  chmod +x "$SA_DIR/bin/archive" "$SA_DIR/setup.sh" 2>/dev/null || true
+  # NB: we deliberately do NOT chmod the scripts — modifying the +x bit dirties the working
+  # tree and blocks `git pull`. Everything is invoked via `bash` (setup.sh calls `bash bin/archive`;
+  # you run `bash setup.sh`), so no executable bit is needed.
 }
 
 # Run bin/archive with the venv on PATH so the engine's python3 (features/embed/…) finds numpy.
