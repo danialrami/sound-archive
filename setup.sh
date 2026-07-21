@@ -160,9 +160,10 @@ cmd_provision_clap(){
   rm -rf "$cdir/.venv"   # clean rebuild (a prior half-provisioned venv is why we're here)
   "$cpy" -m venv "$cdir/.venv" || die "venv create failed with $cpy"
   "$pip" install --upgrade pip >/dev/null 2>&1 || true
-  # laion_clap imports torchaudio + transformers at load, and it is not numpy-2 clean — install the
-  # full import-time set and pin numpy<2 in THIS venv (independent of the archive venv's numpy 2.x).
-  if ! "$pip" install "numpy<2" soundfile librosa transformers torch torchaudio laion-clap; then
+  # laion_clap imports torchaudio + torchvision + transformers at load, and it is not numpy-2 clean —
+  # install the full import-time set and pin numpy<2 in THIS venv (independent of the archive venv's
+  # numpy 2.x). torchvision must be co-installed with torch/torchaudio so pip resolves a matching trio.
+  if ! "$pip" install "numpy<2" soundfile librosa transformers torch torchaudio torchvision laion-clap; then
     warn "pip install failed under $cpy (often a too-new Python for torch/torchaudio wheels)."
     warn "remedy: brew install python@3.12 && ./setup.sh provision-clap --clap-python python3.12"
     die  "CLAP not provisioned. --embedder melstats works in the meantime (see the galaxy now, upgrade later)."
