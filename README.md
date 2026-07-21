@@ -50,7 +50,8 @@ bin/archive surface --k 9 --session morning        # now pulls "relevance:like-s
 # 4. build the 3D galaxy projection (run after each ingest batch) + serve the read side
 bin/archive project                                # PCA-3D + k-means -> persisted `projection` table
 bin/archive points --scope archive                 # the galaxy point-cloud (stable cluster + x/y/z)
-bin/archive serve --host 0.0.0.0 --port 8788       # GET /api/points /surface /like /query /waveform /stats, POST /api/act
+bin/archive serve --host 0.0.0.0 --port 8788       # serves the web/ front door at /  + the API under /api
+# → open http://<klaxon>:8788/  — the galaxy auto-detects the live serve (same-origin) and fills with your real sound
 ```
 
 Full first-time walkthrough: **[docs/01-first-run.md](docs/01-first-run.md)**.

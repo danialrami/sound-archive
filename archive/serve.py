@@ -4,7 +4,7 @@ serve.py — read-only HTTP/JSON serve stub for the sound archive (the front-doo
 generalized from lufs-recorder's serve). Runs on klaxon over the tailnet; co-located with
 the index + audio so the <50ms hook/scrub promise holds (no cross-tailnet byte fetch).
 
-  archive serve --db PATH --port 8788
+  archive serve --db PATH --port 8788     # also serves the web/ front door at /  (one process, same-origin)
 
 Endpoints (stub):
   GET /api/stats                      counts by scope/model
@@ -26,6 +26,10 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse, parse_qs
 
 DB=None
+WEB_DIR=os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)),"..","web"))
+_MIME={".html":"text/html; charset=utf-8",".js":"application/javascript",".css":"text/css",
+       ".md":"text/markdown; charset=utf-8",".png":"image/png",".svg":"image/svg+xml",
+       ".ico":"image/x-icon",".json":"application/json",".woff2":"font/woff2"}
 def _waveform_peaks(cat, bins=800):
     import numpy as np
     c=sqlite3.connect(DB); c.row_factory=sqlite3.Row
@@ -74,6 +78,15 @@ class H(BaseHTTPRequestHandler):
         data=open(rows[0]["p"],"rb").read(); self.send_response(200)
         self.send_header("Content-Type",mime); self._cors(); self.send_header("Content-Length",str(len(data)))
         self.send_header("Accept-Ranges","bytes"); self.end_headers(); self.wfile.write(data)
+    def _static(self, path):
+        rel = "index.html" if path in ("","/") else path.lstrip("/")
+        fp = os.path.normpath(os.path.join(WEB_DIR, rel))
+        if not fp.startswith(WEB_DIR) or not os.path.isfile(fp): return False
+        data=open(fp,"rb").read()
+        self.send_response(200)
+        self.send_header("Content-Type", _MIME.get(os.path.splitext(fp)[1].lower(),"application/octet-stream"))
+        self._cors(); self.send_header("Content-Length",str(len(data))); self.end_headers(); self.wfile.write(data)
+        return True
     def do_GET(self):
         u=urlparse(self.path); parts=[x for x in u.path.split("/") if x]; qs=parse_qs(u.query)
         if u.path=="/api/stats":
@@ -117,6 +130,7 @@ class H(BaseHTTPRequestHandler):
             rows=_surface.surface(con, int(qs.get("k",["9"])[0]), qs.get("session",["default"])[0], qs.get("scope",["archive"])[0])
             return self._json(rows)
         if len(parts)==2 and parts[0]=="stream": return self._file("path",parts[1],"audio/wav")
+        if self._static(u.path): return           # static front door: serve web/ at /
         self._json({"error":"unknown route"},404)
     def do_POST(self):
         u=urlparse(self.path)
