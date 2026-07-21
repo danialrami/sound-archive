@@ -17,6 +17,7 @@ gated to `archive` by default — `reference` never enters the inspiration strea
 import os, sys, json, sqlite3, argparse, math, random, datetime
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import actlog
+import points as _points
 
 def db_path(a): return a.db or os.environ.get("ARCHIVE_DB") or os.path.expanduser("~/.sound-archive/archive.db")
 def cosine(a,b):
@@ -29,6 +30,7 @@ def surface(con, k=9, session="default", scope="archive"):
     pool=[dict(r) for r in con.execute("SELECT * FROM assets WHERE scope=?", (scope,)).fetchall()]
     if not pool: return []
     by_sha={r["content_sha256"]: r for r in pool}
+    cmap=_points.cluster_map(con)
     seen=actlog.recently_surfaced(con, 200)
     skips=actlog.skip_counts(con)
     stars=actlog.recent_stars(con, 5)
@@ -75,6 +77,8 @@ def surface(con, k=9, session="default", scope="archive"):
         r=by_sha[s]
         out.append({"catalog_number":r["catalog_number"],"filename":r["filename"],
                     "scope":r["scope"],"duration_s":r["duration_s"],"brightness":r["brightness"],
+                    "spectral_centroid_hz":r["spectral_centroid_hz"],"cluster":cmap.get(s),
+                    "hook":"/hook/%s"%r["catalog_number"],"waveform":"/waveform/%s"%r["catalog_number"],
                     "hook_path":r["hook_path"],"waveform_path":r["waveform_path"],"why":reasons[s]})
         actlog.log_event(con, "surfaced", s, session)
     return out

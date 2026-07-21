@@ -35,6 +35,14 @@ CREATE TABLE IF NOT EXISTS dupes (
   path TEXT PRIMARY KEY, keeper_sha256 TEXT, reason TEXT, seen_at TEXT
 );
 
+-- Cached 3D galaxy projection (derived from the index; recompute after ingest batches).
+-- Stable per-asset cluster + coords so /api/points, /api/surface, /api/like all colour
+-- consistently without a per-request k-means. Projection is navigation; retrieval stays full-dim.
+CREATE TABLE IF NOT EXISTS projection (
+  content_sha256 TEXT PRIMARY KEY, cluster INTEGER, px REAL, py REAL, pz REAL,
+  method TEXT, projected_at TEXT
+);
+
 -- The flywheel's irreplaceable asset: the typed, append-only interaction log.
 -- Back this up religiously (see KB 05-scope-tagging-and-backup); nothing regenerates it.
 CREATE TABLE IF NOT EXISTS interaction_log (
