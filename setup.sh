@@ -28,6 +28,7 @@ FRESH=0
 CLAP_PYTHON=""
 CHAIN_SERVE=0
 LIMIT=""
+HOST_SET=0
 
 c_grn=$'\033[0;32m'; c_yel=$'\033[1;33m'; c_red=$'\033[0;31m'; c_cyn=$'\033[0;36m'; c_off=$'\033[0m'
 say(){ printf "%s\n" "${c_cyn}▸ $*${c_off}"; }
@@ -62,7 +63,8 @@ OPTIONS
   --clap-python BIN   Python used to build the CLAP venv (default: auto-detect a torch-friendly one).
   --host H            serve host (default: 127.0.0.1; use 0.0.0.0 for the tailnet).
   --port N            serve port (default: 8788).
-  --serve             (first-run only) chain into `serve` when the flow finishes.
+  --serve             (first-run only) chain into `serve` when the flow finishes
+                      (binds 0.0.0.0 for the tailnet unless you pass --host).
   -h, --help          This message.
 
 EXAMPLES
@@ -96,7 +98,7 @@ while [ $# -gt 0 ]; do
     --embedder) EMBEDDER="$2"; shift 2;;
     --scope-map) SCOPE_MAP="$2"; shift 2;;
     --db) DB="$2"; shift 2;;
-    --host) HOST="$2"; shift 2;;
+    --host) HOST="$2"; HOST_SET=1; shift 2;;
     --port) PORT="$2"; shift 2;;
     --limit) LIMIT="$2"; shift 2;;
     --clap-python) CLAP_PYTHON="$2"; shift 2;;
@@ -120,10 +122,13 @@ ensure_venv(){
   "$VENV/bin/pip" install -q --upgrade pip >/dev/null 2>&1 || true
   "$VENV/bin/pip" install -q -r "$SA_DIR/requirements.txt" || die "pip install failed in ./.venv"
   ok "venv ready — $("$PY" -c 'import numpy,sys;print("python",sys.version.split()[0],"· numpy",numpy.__version__)')"
+  # git pushes don't always preserve the executable bit; make our entrypoints runnable.
+  chmod +x "$SA_DIR/bin/archive" "$SA_DIR/setup.sh" 2>/dev/null || true
 }
 
-# run bin/archive with the venv on PATH so the engine's python3 (features/embed/…) finds numpy
-arch(){ PATH="$VENV/bin:$PATH" ARCHIVE_DB="$DB" "$SA_DIR/bin/archive" "$@"; }
+# Run bin/archive with the venv on PATH so the engine's python3 (features/embed/…) finds numpy.
+# Invoked via `bash` so it works even if the file's +x bit didn't survive the git push.
+arch(){ PATH="$VENV/bin:$PATH" ARCHIVE_DB="$DB" bash "$SA_DIR/bin/archive" "$@"; }
 
 check_workchain(){
   [ -f "$WORKCHAIN/engine/workchain-engine.sh" ] || die "no workchain engine at $WORKCHAIN (pass --workchain PATH)"
@@ -190,8 +195,11 @@ cmd_first_run(){
   cmd_project
   ok "first-run complete — index at $DB"
   arch query --db "$DB" stats || true
-  if [ "$CHAIN_SERVE" = 1 ]; then cmd_serve; else
-    echo; ok "next:  ./setup.sh serve --host $HOST --port $PORT   →   open http://$HOST:$PORT/"
+  if [ "$CHAIN_SERVE" = 1 ]; then
+    [ "$HOST_SET" = 0 ] && HOST="0.0.0.0"   # first-run --serve binds the tailnet-reachable interface by default
+    cmd_serve
+  else
+    echo; ok "next:  ./setup.sh serve --host 0.0.0.0 --port $PORT   →   open http://<klaxon>:$PORT/"
   fi
 }
 
