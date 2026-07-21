@@ -31,18 +31,29 @@ def _kmeans(X, k, iters=25, seed=0):
 
 def _project(con, k_clusters=8):
     con.row_factory=sqlite3.Row
-    rows=[dict(r) for r in con.execute("SELECT content_sha256,vector FROM assets WHERE vector IS NOT NULL").fetchall()]
-    if not rows: return [], None
-    V=np.array([json.loads(r["vector"]) for r in rows], float)
+    # NB: vector is JSON text — an unembedded row is the STRING "null", not SQL NULL, so we can't
+    # filter in SQL. Parse defensively and keep only real, equal-length vectors (drop null/ragged)
+    # so PCA never sees a 1-D/object array. Robust + idempotent across mixed/partial indexes.
+    from collections import Counter
+    vecs=[]
+    for r in con.execute("SELECT content_sha256,vector FROM assets").fetchall():
+        try: v=json.loads(r["vector"]) if r["vector"] else None
+        except Exception: v=None
+        if isinstance(v,list) and len(v)>0: vecs.append((r["content_sha256"], v))
+    if not vecs: return [], 0
+    dim=Counter(len(v) for _,v in vecs).most_common(1)[0][0]   # modal dim; drop odd ones out
+    vecs=[(s,v) for s,v in vecs if len(v)==dim]
+    shas=[s for s,_ in vecs]
+    V=np.asarray([v for _,v in vecs], dtype=float)             # guaranteed 2-D now
     Xc=V-V.mean(0)
     if V.shape[0]>=3 and V.shape[1]>=3:
         _,_,Vt=np.linalg.svd(Xc, full_matrices=False); P=Xc@Vt[:3].T
     else:
         P=np.pad(Xc,((0,0),(0,max(0,3-V.shape[1]))))[:,:3]
     P=P/np.maximum(np.abs(P).max(0),1e-9)
-    kc=min(k_clusters,len(rows)); lab=_kmeans(P,kc) if kc>1 else np.zeros(len(rows),int)
-    out=[(rows[i]["content_sha256"], int(lab[i]), float(P[i,0]), float(P[i,1]), float(P[i,2])) for i in range(len(rows))]
-    return out, int(lab.max())+1
+    kc=min(k_clusters,len(vecs)); lab=_kmeans(P,kc) if kc>1 else np.zeros(len(vecs),int)
+    out=[(shas[i], int(lab[i]), float(P[i,0]), float(P[i,1]), float(P[i,2])) for i in range(len(vecs))]
+    return out, (int(lab.max())+1 if len(out) else 0)
 
 def project(con, k_clusters=8):
     """Compute + PERSIST the projection. Returns cluster count."""
@@ -66,21 +77,21 @@ def build_points(con, scope=None, k_clusters=8):
         "SELECT content_sha256,cluster,px,py,pz FROM projection").fetchall()} if _has_proj(con) else {}
     if not persisted:  # fall back to on-the-fly (never break the endpoint)
         rows,_=_project(con,k_clusters); persisted={s:(s,c,x,y,z) for (s,c,x,y,z) in rows}
-    sql="SELECT content_sha256,catalog_number,filename,scope,duration_s,brightness,spectral_centroid_hz,embed_model FROM assets WHERE vector IS NOT NULL"
+    sql="SELECT content_sha256,catalog_number,filename,scope,duration_s,brightness,spectral_centroid_hz,embed_model,dim FROM assets"
     p=[]
-    if scope and scope!="all": sql+=" AND scope=?"; p.append(scope)
-    pts=[]; model=None; dims=64
+    if scope and scope!="all": sql+=" WHERE scope=?"; p.append(scope)
+    pts=[]; model=None; dims=None
     for r in con.execute(sql,p).fetchall():
-        pr=persisted.get(r["content_sha256"]); 
+        pr=persisted.get(r["content_sha256"]);
         if not pr: continue
-        model=r["embed_model"]
+        model=r["embed_model"]; dims=r["dim"] or dims
         pts.append({"catalog_number":r["catalog_number"],"filename":r["filename"],"scope":r["scope"],
                     "x":round(pr[2],5),"y":round(pr[3],5),"z":round(pr[4],5),"cluster":int(pr[1]),
                     "brightness":r["brightness"],"duration_s":r["duration_s"],
                     "spectral_centroid_hz":r["spectral_centroid_hz"],
                     "hook":"/hook/%s"%r["catalog_number"],"waveform":"/waveform/%s"%r["catalog_number"]})
     clusters=(max((pt["cluster"] for pt in pts), default=-1)+1)
-    return {"points":pts,"n":len(pts),"projection":"pca-3d","clusters":clusters,"model":model,"dims":dims}
+    return {"points":pts,"n":len(pts),"projection":"pca-3d","clusters":clusters,"model":model,"dims":dims or 0}
 
 def _has_proj(con):
     try: return con.execute("SELECT COUNT(*) FROM projection").fetchone()[0]>0
