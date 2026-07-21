@@ -118,9 +118,11 @@ ensure_venv(){
     say "creating venv at ./.venv"
     python3 -m venv "$VENV" || die "could not create venv (need python3 -m venv)"
   fi
-  say "installing archive deps into ./.venv (numpy)"
-  "$VENV/bin/pip" install -q --upgrade pip >/dev/null 2>&1 || true
-  "$VENV/bin/pip" install -q -r "$SA_DIR/requirements.txt" || die "pip install failed in ./.venv"
+  if ! "$PY" -c "import numpy" >/dev/null 2>&1; then          # idempotent: only install once
+    say "installing archive deps into ./.venv (numpy)"
+    "$VENV/bin/pip" install -q --upgrade pip >/dev/null 2>&1 || true
+    "$VENV/bin/pip" install -q -r "$SA_DIR/requirements.txt" || die "pip install failed in ./.venv"
+  fi
   ok "venv ready — $("$PY" -c 'import numpy,sys;print("python",sys.version.split()[0],"· numpy",numpy.__version__)')"
   # git pushes don't always preserve the executable bit; make our entrypoints runnable.
   chmod +x "$SA_DIR/bin/archive" "$SA_DIR/setup.sh" 2>/dev/null || true
@@ -142,21 +144,37 @@ cmd_provision_clap(){
   check_workchain
   local cdir="$WORKCHAIN/components/embed_clap"
   [ -d "$cdir" ] || die "embed_clap component missing in $WORKCHAIN (pull latest)"
+  local vpy="$cdir/.venv/bin/python" pip="$cdir/.venv/bin/pip"
+  # fast path: already importable → nothing to do (this is exactly what the preflight checks)
+  if [ -x "$vpy" ] && "$vpy" -c "import laion_clap, torch" >/dev/null 2>&1; then
+    ok "embed_clap already provisioned + verified (import laion_clap OK)."; return
+  fi
   local cpy=""
   for cand in "$CLAP_PYTHON" python3.12 python3.11 python3.13 python3; do
     [ -n "$cand" ] || continue
     command -v "$cand" >/dev/null 2>&1 && { cpy="$cand"; break; }
   done
   [ -n "$cpy" ] || die "no python found for the CLAP venv"
-  say "building embed_clap venv with $cpy (torch + laion-clap; this is heavy)"
+  say "building embed_clap venv with $cpy — torch + laion-clap + deps (heavy; several minutes, progress below)"
+  rm -rf "$cdir/.venv"   # clean rebuild (a prior half-provisioned venv is why we're here)
   "$cpy" -m venv "$cdir/.venv" || die "venv create failed with $cpy"
-  "$cdir/.venv/bin/pip" install -q --upgrade pip >/dev/null 2>&1 || true
-  if ! "$cdir/.venv/bin/pip" install -q "numpy>=1.26" soundfile laion-clap torch; then
-    warn "torch/laion-clap install failed under $cpy (often a too-new Python for torch wheels)."
+  "$pip" install --upgrade pip >/dev/null 2>&1 || true
+  # laion_clap imports torchaudio + transformers at load, and it is not numpy-2 clean — install the
+  # full import-time set and pin numpy<2 in THIS venv (independent of the archive venv's numpy 2.x).
+  if ! "$pip" install "numpy<2" soundfile librosa transformers torch torchaudio laion-clap; then
+    warn "pip install failed under $cpy (often a too-new Python for torch/torchaudio wheels)."
     warn "remedy: brew install python@3.12 && ./setup.sh provision-clap --clap-python python3.12"
-    die  "CLAP not provisioned. You can still run everything on --embedder melstats in the meantime."
+    die  "CLAP not provisioned. --embedder melstats works in the meantime (see the galaxy now, upgrade later)."
   fi
-  ok "embed_clap provisioned ($cpy). First CLAP ingest downloads the ~2GB 630k-audioset-best checkpoint."
+  # VERIFY the import the workchain preflight will check — never claim success we didn't earn.
+  local err
+  if ! err="$("$vpy" -c 'import laion_clap, torch, soundfile' 2>&1)"; then
+    printf "%s\n" "$err" >&2
+    warn "laion_clap installed but failed to IMPORT (real error above)."
+    warn "paste that error to Ciani and I'll pin the exact versions. Meanwhile: --embedder melstats."
+    die  "CLAP import verification failed — not marking provisioned."
+  fi
+  ok "embed_clap provisioned + verified (import laion_clap OK) with $cpy. First CLAP ingest pulls the ~2GB checkpoint."
 }
 
 cmd_ingest(){
