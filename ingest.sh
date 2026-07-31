@@ -115,15 +115,24 @@ cmd_run(){
   [ -n "$limit" ] && reargs+=(--limit "$limit")
   [ "$dryrun" = 1 ] && reargs+=(--dry-run)
 
+  # The single real launch: ingest_batch.py (same shape as setup.sh's `arch ingest`).
+  # tmux/herdr modes re-invoke `run --foreground --no-preflight` in a fresh pane so the
+  # env file is re-sourced there; this foreground branch then execs ingest_batch.py with
+  # the env it inherited (EMBED_API_KEY / EMBED_CLAP_ENDPOINT exported above).
+  local -a launch=("$samples" --workchain "$WORKCHAIN" --embedder "$embedder" --db "$DB")
+  [ -n "$limit" ] && launch+=(--limit "$limit")
+  [ "$dryrun" = 1 ] && launch+=(--dry-run)
+
   if [ "$dryrun" = 1 ]; then
-    say "dry-run — would run:"; printf '  %s\n' "$(printf '%q ' "$HERE/ingest.sh" "${reargs[@]}")"
+    say "dry-run — would run:"
+    printf '  %s\n' "$(printf '%q ' "$PY" "$HERE/archive/ingest_batch.py" "${launch[@]}")"
     return 0
   fi
 
   case "$mode" in
     foreground)
       say "foreground ingest: $samples (embedder=$embedder, endpoint=$endpoint, db=$DB)"
-      exec "$HERE/ingest.sh" "${reargs[@]}"
+      exec "$PY" "$HERE/archive/ingest_batch.py" "${launch[@]}"
       ;;
     tmux)
       if tmux has-session -t "$TMUX_SESSION" 2>/dev/null; then
