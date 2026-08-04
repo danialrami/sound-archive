@@ -203,6 +203,14 @@ cmd_status(){
     local n t
     IFS='|' read -r n t <<<"$(sqlite3 "$DB" "SELECT COUNT(*), COALESCE(MAX(indexed_at),'') FROM assets;")"
     say "index: $n assets  (last indexed: ${t:-never})"
+    # Quarantine is the honest answer to "why is `to ingest` not going down?" — files that
+    # failed before are skipped on resume instead of tarpitting the head of the queue.
+    local q
+    q="$(sqlite3 "$DB" "SELECT COUNT(*) FROM ingest_quarantine;" 2>/dev/null || echo 0)"
+    if [ "${q:-0}" -gt 0 ]; then
+      warn "quarantine: $q file(s) skipped on resume  (why: archive ingest --quarantine-report)"
+      sqlite3 -noheader "$DB" "SELECT '           ' || COUNT(*) || '  step=' || COALESCE(step,'?') || '  ' || COALESCE(signature,'?') FROM ingest_quarantine GROUP BY step, signature ORDER BY COUNT(*) DESC LIMIT 5;" 2>/dev/null || true
+    fi
   fi
   local log; log="$(_latest_log)"
   if [ -n "$log" ]; then
