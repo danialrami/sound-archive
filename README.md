@@ -75,6 +75,21 @@ bin/archive serve --host 0.0.0.0 --port 8788       # serves the web/ front door 
 
 Full first-time walkthrough: **[docs/01-first-run.md](docs/01-first-run.md)**.
 
+## Tests
+
+```bash
+python3 -m pip install pytest
+python3 -m pytest tests/ -v
+```
+
+`tests/test_signature.py` covers `_signature()` — the quarantine failure-cause extractor that
+turns "295 failed" into "which bugs, how many, go look here". Its fixtures are real captured
+blobs from `ingest_quarantine.stderr_tail`, and every assertion was checked to go red against
+the pre-fix implementation: a test that cannot fail manufactures confidence.
+
+CI lives in **`ci/verify.yml`** and must be copied to `.github/workflows/verify.yml` to run —
+the agents' GitHub app cannot commit under `.github/workflows`.
+
 ## Status
 
 v0 scaffold. The `embed` stage ships `melstats-v0` (a dependency-light stand-in behind the

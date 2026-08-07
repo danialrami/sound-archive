@@ -1,0 +1,36 @@
+name: verify
+
+# NOTE: this file lives in ci/ and must be copied to .github/workflows/verify.yml to run.
+# The GitHub app used by the agents cannot commit under .github/workflows (no `workflow`
+# scope), so workflow YAML is authored here and placed separately — by hand, or via the
+# webhookd place-workflows handler.
+#
+# runs-on is ubuntu-latest for now. When this repo moves into the lufs-audio org it should
+# become [self-hosted, lufs]. The toolchain below is already written for that move: system
+# python3 via apt-get rather than actions/setup-python, which has no arm64 prebuilds and
+# fails on the Raspberry Pi nodes in the fleet.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: System python + pytest
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3 python3-pip
+          python3 -m pip install --break-system-packages pytest
+
+      # Cheap and absolute: every module must at least parse. Catches the class of damage
+      # where a file is written truncated and nothing notices until it runs at 3am.
+      - name: Syntax gate
+        run: python3 -m compileall -q archive/
+
+      - name: Tests
+        run: python3 -m pytest tests/ -v

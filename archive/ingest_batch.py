@@ -224,7 +224,43 @@ def _failing_step(text):
     return m.group(1) if m else "unknown"
 
 
-_NOISE = ("Chain halted", "Step failed", "Registered output", "Error opening input files")
+# Lines that describe the INFRASTRUCTURE of a failure rather than its CAUSE.
+#
+# "Error opening input files" is matched at LINE START only, never as a substring. The
+# workchain's lib/workchain_decode.py quotes that exact phrase inside its own diagnostic:
+#
+#   probe: ffmpeg refused /path/x.wav (Error opening input files: Invalid data found when
+#          processing input) and salvage failed (no plausible fmt chunk found)
+#
+# — the single most informative line in the whole blob, naming both the demuxer's complaint
+# and the salvage outcome. A substring blacklist threw it away and left the signature falling
+# back to "probe failed to produce <path>", which says nothing. Anchoring lets ffmpeg's own
+# bare line stay filtered while a component's diagnostic survives.
+# The optional ERROR:/WARN: group matters: the engine prefixes its own log lines, so after
+# the prefix is normalised away "Step failed: probe" is no longer at column 0.
+_NOISE_AT_LINE_START = re.compile(
+    r"^(?:(?:ERROR|WARN|WARNING|INFO):\s*)?"
+    r"(?:Chain halted|Step failed|Registered output|Error opening input files)\b")
+
+# The engine stamps every log line with [HH:MM:SS]. Strip it during line normalisation, not
+# after the candidate is chosen: left in place it makes every engine line look like ffmpeg's
+# "[filter @ 0xADDR] message" shape and win a pattern that was written for ffmpeg alone.
+_LOG_TIMESTAMP = re.compile(r"^\[\d\d:\d\d:\d\d\]\s*")
+
+# Python's warnings go to stderr BEFORE the real failure. The engine's verify_step /
+# preflight_step capture with 2>&1 and replay EVERY captured line through log_error, so on
+# Python 3.12 the utcnow() DeprecationWarning became the first "ERROR:" line in the blob and
+# won the candidate search — reporting 67 quarantined files as a datetime deprecation while
+# the actual cause ("samplerate: 1280 >= 2000 <- VIOLATED") sat three lines below, unseen.
+# Warning lines are noise. So is the indented source echo Python prints beneath each one,
+# which has no keyword of its own and is tracked by position instead.
+_WARNING_LINE = re.compile(
+    r"\b(?:Deprecation|Future|User|Syntax|Resource|Pending|Import|Runtime)Warning:")
+
+# The engine colours log_error output. Stored signatures currently carry the raw escapes,
+# which is why `GROUP BY signature` output is littered with ^[[0;31m and why logically
+# identical failures can fail to group. Strip them once, up front.
+_ANSI = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
 
 
 def _signature(text):
@@ -232,35 +268,67 @@ def _signature(text):
     normalised so 40,000 distinct filenames collapse into the handful of distinct BUGS behind
     them — that is the difference between "17,431 failed" and "one demuxer refusal, one
     stderr-decoding crash, go fix two things"."""
-    lines = [ln.strip() for ln in (text or "").splitlines() if ln.strip()]
+    raw = [_LOG_TIMESTAMP.sub("", _ANSI.sub("", ln).strip()).strip()
+           for ln in (text or "").splitlines()]
+    lines = [ln for ln in raw if ln]
     if not lines:
         return "(no output)"
 
-    def usable(ln):
-        return not any(n in ln for n in _NOISE)
+    def usable(ln, prev):
+        if _NOISE_AT_LINE_START.search(ln):
+            return False
+        if _WARNING_LINE.search(ln):
+            return False
+        # the indented source-echo line Python prints directly under a warning
+        if prev is not None and _WARNING_LINE.search(prev):
+            return False
+        return True
+
+    keep = [ln for i, ln in enumerate(lines)
+            if usable(ln, lines[i - 1] if i else None)]
 
     # Preference order matters: a python traceback's SOURCE lines also contain the word
-    # "errors", so the exception line has to win over them.
+    # "errors", so the exception line has to win over them. A verifier violation outranks a
+    # generic engine ERROR: line for the same reason — "samplerate: 1280 >= 2000 <- VIOLATED"
+    # names the condition that failed, which is the whole point of asking why.
     cand = None
-    for pat in (r"^[A-Za-z_][A-Za-z_.]*(?:Error|Exception|Warning):",   # UnicodeDecodeError: ...
+    for pat in (r"^[A-Za-z_][A-Za-z_.]*(?:Error|Exception):",           # UnicodeDecodeError: ...
+                r"<-\s*VIOLATED",                                       # a post-condition failed
+                r"verification FAILED",                                 # ...or its summary line
+                # A component's own diagnostic, "<component>: <what happened>". This is the
+                # most informative line in the blob when it exists, because the component
+                # quotes the underlying tool's complaint AND says what it did about it —
+                # "probe: ffmpeg refused X (...) and salvage failed (...)". It outranks the
+                # engine's generic "ERROR: probe failed to produce <path>", which reports the
+                # consequence rather than the cause.
+                r"^[a-z_][a-z0-9_]*: \S",
                 r"Error opening input:",                                # ffmpeg demuxer refusal
                 r"^\[[^]]+\]\s+\S",                                    # [wav @ ..] too short LIST tag
                 r"ERROR:",                                              # engine log_error
                 r"[Ee]rror"):
-        for ln in lines:
-            if usable(ln) and re.search(pat, ln):
+        for ln in keep:
+            if re.search(pat, ln):
                 cand = ln
                 break
         if cand:
             break
     if cand is None:
-        cand = next((ln for ln in reversed(lines) if usable(ln)), lines[-1])
+        cand = next((ln for ln in reversed(keep)), lines[-1])
 
     cand = re.sub(r"\[\d\d:\d\d:\d\d\]\s*", "", cand)
     cand = re.sub(r"0x[0-9a-fA-F]{4,}", "0xADDR", cand)     # heap addresses
     cand = re.sub(r"0x[0-9a-fA-F]{1,3}\b", "0xNN", cand)    # the specific offending byte
     cand = re.sub(r"\b(position|line|offset|column)\s+\d+", r"\1 N", cand)
-    cand = re.sub(r"(/[^\s:]+)+", "<path>", cand)
+    # Paths FIRST by extension, because the sample library is full of spaces and the
+    # whitespace-delimited rule below shreds them: "/Samples/Pole Position/Porsche GT.wav"
+    # became "<path> Position<path> GT.wav", so the filename survived into the signature and
+    # every file got its own quarantine row instead of grouping onto the one bug. That is the
+    # entire promise of this function, broken by a regex. Matching through a known extension
+    # absorbs the spaces.
+    cand = re.sub(r"/[^\n]*?\.(?:wav|aiff?|aifc|flac|mp3|ogg|oga|opus|m4a|aac|caf|wv|alac"
+                  r"|json|png|db|py|sh|yaml|yml|log|txt)\b", "<path>", cand)
+    cand = re.sub(r"(/[^\s:]+)+", "<path>", cand)          # extension-less paths
+    cand = re.sub(r"(?:<path>[\s,]*)+", "<path> ", cand)    # collapse runs of them
     cand = re.sub(r"\s+", " ", cand).strip()
     return cand[:140]
 
