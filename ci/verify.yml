@@ -1,1 +1,36 @@
-IyBjaS92ZXJpZnkueW1sCiMKIyBTeW50YXggZ2F0ZSArIHVuaXQgdGVzdHMgZm9yIHRoZSBzb3VuZC1hcmNoaXZlIFB5dGhvbiBjb2RlLgojCiMgUExBQ0VNRU5UOiB0aGlzIGZpbGUgbGl2ZXMgaW4gY2kvIChub3QgLmdpdGh1Yi93b3JrZmxvd3MvKSBiZWNhdXNlIHRoZSBHaXRIdWIKIyBBcHAgdXNlZCBmb3IgYXV0b21hdGVkIGNvbW1pdHMgY2Fubm90IHdyaXRlIGludG8gLmdpdGh1Yi93b3JrZmxvd3MvLiAgQ29weSBvcgojIHN5bWxpbmsgaXQgbWFudWFsbHkgb25jZSBpbnRvIC5naXRodWIvd29ya2Zsb3dzL3ZlcmlmeS55bWwsIG9yIGF1dG9tYXRlIHRoYXQKIyBjb3B5IGluIHRoZSByZXBvLXNldHVwIHNjcmlwdC4KIwojIFRPRE8gKGZvbGxvdy11cCk6IG9uY2UgdGhpcyByZXBvIG1vdmVzIGludG8gdGhlIGx1ZnMtYXVkaW8gb3JnLCBtaWdyYXRlIHRoZQojIHRlc3Qgam9iIHRvIHRoZSBzZWxmLWhvc3RlZCBbc2VsZi1ob3N0ZWQsIGx1ZnNdIGZsZWV0IHNvIGl0IHJ1bnMgYWdhaW5zdCB0aGUKIyBzYW1lIFB5dGhvbiB2ZXJzaW9uIGFuZCBzeXN0ZW0gbGlicmFyaWVzIGFzIGtsYXhvbi4KIwojIGFjdGlvbnMvY2hlY2tvdXQgaXMgcGlubmVkIHRvIGl0cyB2NCBTSEEgZm9yIHN1cHBseS1jaGFpbiBzYWZldHkuCiMgU0hBIGNvcnJlc3BvbmRzIHRvIGFjdGlvbnMvY2hlY2tvdXRAdjQuMi4yICgyMDI0LTEwLTIzKS4KCm5hbWU6IHZlcmlmeQoKb246CiAgcHVzaDoKICAgIGJyYW5jaGVzOiBbIioqIl0KICBwdWxsX3JlcXVlc3Q6Cgpqb2JzOgogIHRlc3Q6CiAgICBydW5zLW9uOiB1YnVudHUtbGF0ZXN0CgogICAgc3RlcHM6CiAgICAgIC0gbmFtZTogQ2hlY2tvdXQKICAgICAgICB1c2VzOiBhY3Rpb25zL2NoZWNrb3V0QDExYmQ3MTkwMWJiZTViMTYzMGNlZWE3M2QyNzU5NzM2NGM5YWY2ODMgICMgdjQuMi4yCgogICAgICAtIG5hbWU6IEluc3RhbGwgc3lzdGVtIFB5dGhvbiBhbmQgcHl0ZXN0CiAgICAgICAgcnVuOiB8CiAgICAgICAgICBzdWRvIGFwdC1nZXQgdXBkYXRlIC1xcQogICAgICAgICAgc3VkbyBhcHQtZ2V0IGluc3RhbGwgLXkgcHl0aG9uMyBweXRob24zLXBpcAogICAgICAgICAgcGlwMyBpbnN0YWxsIHB5dGVzdAoKICAgICAgLSBuYW1lOiBTeW50YXggZ2F0ZSDigJQgY29tcGlsZSBhbGwgUHl0aG9uIGluIGFyY2hpdmUvCiAgICAgICAgcnVuOiBweXRob24zIC1tIGNvbXBpbGVhbGwgLXEgYXJjaGl2ZS8KCiAgICAgIC0gbmFtZTogUnVuIHRlc3RzCiAgICAgICAgcnVuOiBweXRlc3QgdGVzdHMvIC12Cg==
+name: verify
+
+# NOTE: this file lives in ci/ and must be copied to .github/workflows/verify.yml to run.
+# The GitHub app used by the agents cannot commit under .github/workflows (no `workflow`
+# scope), so workflow YAML is authored here and placed separately — by hand, or via the
+# webhookd place-workflows handler.
+#
+# runs-on is ubuntu-latest for now. When this repo moves into the lufs-audio org it should
+# become [self-hosted, lufs]. The toolchain below is already written for that move: system
+# python3 via apt-get rather than actions/setup-python, which has no arm64 prebuilds and
+# fails on the Raspberry Pi nodes in the fleet.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: System python + pytest
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3 python3-pip
+          python3 -m pip install --break-system-packages pytest
+
+      # Cheap and absolute: every module must at least parse. Catches the class of damage
+      # where a file is written truncated and nothing notices until it runs at 3am.
+      - name: Syntax gate
+        run: python3 -m compileall -q archive/
+
+      - name: Tests
+        run: python3 -m pytest tests/ -v

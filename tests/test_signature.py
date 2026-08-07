@@ -1,1 +1,152 @@
-IiIiCnRlc3RzL3Rlc3Rfc2lnbmF0dXJlLnB5IOKAlCB0YWJsZS1kcml2ZW4gdGVzdHMgZm9yIF9zaWduYXR1cmUoKSBhbmQgX2ZhaWxpbmdfc3RlcCgpLgoKV0hZIGltcG9ydGxpYi51dGlsOiBhcmNoaXZlL2luZ2VzdF9iYXRjaC5weSBpcyBub3QgaW5zaWRlIGEgcGFja2FnZSAobm8gX19pbml0X18ucHkKZXhpc3RzIGF0IGFyY2hpdmUvIG9yIGFib3ZlIGl0IGluIHRoZSB0ZXN0IGNvbnRleHQpLCBzbyBhIHBsYWluIGBpbXBvcnQgaW5nZXN0X2JhdGNoYAp3b3VsZCByZXF1aXJlIG1hbmlwdWxhdGluZyBzeXMucGF0aCAqYW5kKiByZWxpZXMgb24gdGhlIHdvcmtpbmcgZGlyZWN0b3J5IGJlaW5nIHJpZ2h0LgppbXBvcnRsaWIudXRpbC5zcGVjX2Zyb21fZmlsZV9sb2NhdGlvbiBpbXBvcnRzIGJ5IGZpbGVzeXN0ZW0gcGF0aCwgbWFraW5nIHRoZSB0ZXN0Cmhlcm1ldGljIHJlZ2FyZGxlc3Mgb2YgaG93IHB5dGVzdCBkaXNjb3ZlcnMgYW5kIHJ1bnMgaXQuCiIiIgoKaW1wb3J0IGltcG9ydGxpYi51dGlsCmltcG9ydCBvcwppbXBvcnQgc3lzCmltcG9ydCBwYXRobGliCmltcG9ydCBweXRlc3QKCiMg4pSA4pSAIGltcG9ydCB0YXJnZXQgbW9kdWxlIGJ5IHBhdGgg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACl9IRVJFID0gcGF0aGxpYi5QYXRoKF9fZmlsZV9fKS5wYXJlbnQgICAgICAgICAgIyB0ZXN0cy8KX1JPT1QgPSBfSEVSRS5wYXJlbnQgICAgICAgICAgICAgICAgICAgICAgICAgICAjIHJlcG8gcm9vdApfTU9EVUxFX1BBVEggPSBfUk9PVCAvICJhcmNoaXZlIiAvICJpbmdlc3RfYmF0Y2gucHkiCgpzcGVjID0gaW1wb3J0bGliLnV0aWwuc3BlY19mcm9tX2ZpbGVfbG9jYXRpb24oImluZ2VzdF9iYXRjaCIsIF9NT0RVTEVfUEFUSCkKX21vZCA9IGltcG9ydGxpYi51dGlsLm1vZHVsZV9mcm9tX3NwZWMoc3BlYykKc3BlYy5sb2FkZXIuZXhlY19tb2R1bGUoX21vZCkKCl9zaWduYXR1cmUgICAgPSBfbW9kLl9zaWduYXR1cmUKX2ZhaWxpbmdfc3RlcCA9IF9tb2QuX2ZhaWxpbmdfc3RlcAoKCiMg4pSA4pSAIGhlbHBlcnMg4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSA4pSACgpkZWYgaGFzX25vX2Fuc2kocyk6CiAgICAiIiJSZXR1cm4gVHJ1ZSBpZmYgdGhlIHN0cmluZyBjb250YWlucyBubyBBTlNJIGVzY2FwZSBieXRlICgweDFiKS4iIiIKICAgIHJldHVybiAiXHgxYiIgbm90IGluIHMKCgojIOKUgOKUgCBmaXh0dXJlczogcmVhbCBjYXB0dXJlZCBibG9icyDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIDilIAKCiMgQmxvYiAxOiBQeXRob24gMy4xMiBEZXByZWNhdGlvbldhcm5pbmcgZG9taW5hdGVzIHRoZSBFUlJPUjogbGluZXM7IHRoZSByZWFsCiMgY2F1c2UgKHZpb2xhdGVkIHZlcmlmaWVyIGNvbnRyYWN0KSBpcyB0aHJlZSBsaW5lcyBkb3duLgpWRVJJRklFUl9GQUlMVVJFX0JMT0IgPSAoCiAgICAiXHgxYlswOzMxbVswMDoyMTo0N10gRVJST1I6XHgxYlswbSAiCiAgICAiL1VzZXJzL2RhbmlhbC9sdWZzLXdvcmtjaGFpbi9saWIvd29ya2NoYWluX3ZlcmlmeS5weTo4NDg6ICIKICAgICJEZXByZWNhdGlvbldhcm5pbmc6IGRhdGV0aW1lLmRhdGV0aW1lLnV0Y25vdygpIGlzIGRlcHJlY2F0ZWQgYW5kIHNjaGVkdWxlZCAiCiAgICAiZm9yIHJlbW92YWwgaW4gYSBmdXR1cmUgdmVyc2lvbi4gVXNlIHRpbWV6b25lLWF3YXJlIG9iamVjdHMuLi5cbiIKICAgICJceDFiWzA7MzFtWzAwOjIxOjQ3XSBFUlJPUjpceDFiWzBtICIKICAgICcgICJ2ZXJpZmllZF9hdCI6IGRhdGV0aW1lLmRhdGV0aW1lLnV0Y25vdygpLnN0cmZ0aW1lKCIlWS0lbS0lZFQlSDolTTolU1oiKSxcbicKICAgICJceDFiWzA7MzFtWzAwOjIxOjQ3XSBFUlJPUjpceDFiWzBtICIKICAgICLinJcgcHJvYmUg4oCUIHZlcmlmaWNhdGlvbiBGQUlMRUQgKDEgb2YgNSBjaGVja3MpXG4iCiAgICAiXHgxYlswOzMxbVswMDoyMTo0N10gRVJST1I6XHgxYlswbSAiCiAgICAiICAgIHByb2JlX2ZhY3RzX3BsYXVzaWJsZTogc2FtcGxlcmF0ZTogMTI4MCA+PSAyMDAwICA8LSBWSU9MQVRFRFxuIgogICAgIlx4MWJbMDszMW1bMDA6MjE6NDddIEVSUk9SOlx4MWJbMG0gU3RlcCBmYWlsZWQgdmVyaWZpY2F0aW9uOiBwcm9iZVxuIgopCgojIEJsb2IgMjogd29ya2NoYWluX2RlY29kZS5weSBkaWFnbm9zdGljIHdoZXJlICJFcnJvciBvcGVuaW5nIGlucHV0IGZpbGVzIiBhcHBlYXJzCiMgbWlkLXNlbnRlbmNlIGluc2lkZSB0aGUgaW5mb3JtYXRpdmUgbGluZS4gIFdpdGhvdXQgdGhlIGZpeCwgdGhhdCBsaW5lIHdhcyBibGFja2xpc3RlZAojIGJ5IHRoZSBvbGQgYF9OT0lTRWAgc3Vic3RyaW5nIGNoZWNrIGFuZCB0aGUgc2lnbmF0dXJlIGZlbGwgYmFjayB0byB0aGUgdXNlbGVzcwojICJFUlJPUjogcHJvYmUgZmFpbGVkIHRvIHByb2R1Y2UgPHBhdGg+Ii4KU0FMVkFHRV9GQUlMVVJFX0JMT0IgPSAoCiAgICAiXHgxYlswOzMxbVswMDoxNDoyM10gRVJST1I6XHgxYlswbSAiCiAgICAicHJvYmU6IGZmbXBlZyByZWZ1c2VkIC9kYXRhL2FyY2hpdmUvZG9kZ3kud2F2ICIKICAgICIoRXJyb3Igb3BlbmluZyBpbnB1dCBmaWxlczogSW52YWxpZCBkYXRhIGZvdW5kIHdoZW4gcHJvY2Vzc2luZyBpbnB1dCkgIgogICAgImFuZCBzYWx2YWdlIGZhaWxlZCAobm8gcGxhdXNpYmxlIGZtdCBjaHVuayBmb3VuZClcbiIKICAgICJceDFiWzA7MzFtWzAwOjE0OjIzXSBFUlJPUjpceDFiWzBtICIKICAgICJFUlJPUjogcHJvYmUgZmFpbGVkIHRvIHByb2R1Y2UgL1VzZXJzL2RhbmlhbC8uc291bmQtYXJjaGl2ZS93b3JrL2FiYzEyMy9wcm9iZS5qc29uXG4iCiAgICAiXHgxYlswOzMxbVswMDoxNDoyM10gRVJST1I6XHgxYlswbSBDaGFpbiBoYWx0ZWQ6IHN0ZXAgJ3Byb2JlJyBmYWlsZWRcbiIKKQoKIyBCbG9iIDM6IGZmbXBlZyBzaG93d2F2ZXNwaWMgZmlsdGVyIOKAlCBhZGRyZXNzIG5vcm1hbGlzYXRpb24gcmVncmVzc2lvbiBndWFyZC4KIyBUaGlzIGFscmVhZHkgd29ya2VkIGJlZm9yZSB0aGUgZml4OyB0aGUgdGVzdCBlbnN1cmVzIGl0IGNvbnRpbnVlcyB0byB3b3JrLgpTSE9XV0FWRVNQSUNfQkxPQiA9ICgKICAgICJbUGFyc2VkX3Nob3d3YXZlc3BpY18xIEAgMHg3ZjhiMmMwMDNlMDBdIFRvbyBmZXcgc2FtcGxlc1xuIgogICAgIkVSUk9SOiB3YXZlZm9ybSBmYWlsZWQgdG8gcHJvZHVjZSAvcGF0aC90by93YXZlZm9ybS5wbmdcbiIKICAgICJDaGFpbiBoYWx0ZWQ6IHN0ZXAgJ3dhdmVmb3JtJyBmYWlsZWRcbiIKKQoKIyBCbG9iIDQ6IGNsYXAtcmVtb3RlIEhUVFAgNDEzIOKAlCB0aGUgZW1iZWQgc3RlcCdzIG93biBlcnJvciBtZXNzYWdlIGlzIHRoZSBjYXVzZTsKIyAiZW1iZWRfY2xhcCBmYWlsZWQgdG8gcHJvZHVjZSIgaXMgdGhlIGdlbmVyaWMgZmFsbGJhY2suCkVNQkVEXzQxM19CTE9CID0gKAogICAgIlx4MWJbMDszMW1bMDA6MzM6MDFdIEVSUk9SOlx4MWJbMG0gIgogICAgImNsYXBfcmVtb3RlOiBzZXJ2ZXIgcmVqZWN0ZWQgdGhlIHJlcXVlc3Q6IEhUVFAgNDEzICIKICAgICd7ImRldGFpbCI6ImNsaXAgaXMgNDI0NC4zIHM7IEVNQkVEX01BWF9TRUNPTkRTPTE4MDAuIFJlZnVzaW5nIHRvIHRydW5jYXRlIHNpbGVudGx5LiJ9JwogICAgIiDigJQgbm90IHJldHJ5aW5nXG4iCiAgICAiXHgxYlswOzMxbVswMDozMzowMV0gRVJST1I6XHgxYlswbSAiCiAgICAiRVJST1I6IGVtYmVkX2NsYXAgZmFpbGVkIHRvIHByb2R1Y2UgL1VzZXJzL2RhbmlhbC8uc291bmQtYXJjaGl2ZS93b3JrL2RlZjQ1Ni9lbWJlZC5ucHlcbiIKICAgICJceDFiWzA7MzFtWzAwOjMzOjAxXSBFUlJPUjpceDFiWzBtIENoYWluIGhhbHRlZDogc3RlcCAnZW1iZWQnIGZhaWxlZFxuIgopCgojIEJsb2IgNTogY2hhaW4gaGFsdGVkIG1lc3NhZ2UgZm9yIF9mYWlsaW5nX3N0ZXAuCkNIQUlOX0hBTFRFRF9CTE9CID0gIkNoYWluIGhhbHRlZDogc3RlcCAncHJvYmUnIGZhaWxlZFxuIgoKCiMg4pSA4pSAIHBhcmFtZXRyaXplIHRhYmxlIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgAoKQ0FTRVMgPSBbCiAgICBweXRlc3QucGFyYW0oCiAgICAgICAgInZlcmlmaWVyX3Zpb2xhdGlvbiIsCiAgICAgICAgVkVSSUZJRVJfRkFJTFVSRV9CTE9CLAogICAgICAgICMgTVVTVCBjb250YWluOiB0aGUgY29uZGl0aW9uIHRoYXQgd2FzIHZpb2xhdGVkLCBub3JtYWxpc2VkLgogICAgICAgICMgUHJvdmVzLWl0LWNhbi1mYWlsOiByZXZlcnQgdGhlIERlcHJlY2F0aW9uV2FybmluZyBub2lzZSBmaWx0ZXIgYW5kIHRoZSBvbGQKICAgICAgICAjIGNvZGUgcGlja3MgdGhlIEZJUlNUIEVSUk9SOiBsaW5lIOKAlCB0aGUgRGVwcmVjYXRpb25XYXJuaW5nIOKAlCBpbnN0ZWFkLgogICAgICAgICMgUmV2ZXJ0IHRoZSBWSU9MQVRFRCBwYXR0ZXJuIHByaW9yaXR5IGFuZCB0aGUgZ2VuZXJpYyBFUlJPUjogbGluZSB3aW5zIGluc3RlYWQuCiAgICAgICAgbGFtYmRhIHNpZzogInNhbXBsZXJhdGU6IDEyODAgPj0gMjAwMCIgaW4gc2lnIGFuZCAiVklPTEFURUQiIGluIHNpZywKICAgICAgICAic2FtcGxlcmF0ZTogMTI4MCA+PSAyMDAwIC4uLiBWSU9MQVRFRCIsCiAgICApLAogICAgcHl0ZXN0LnBhcmFtKAogICAgICAgICJub3RfZGVwcmVjYXRpb25fd2FybmluZyIsCiAgICAgICAgVkVSSUZJRVJfRkFJTFVSRV9CTE9CLAogICAgICAgICMgTVVTVCBOT1QgYmUgdGhlIERlcHJlY2F0aW9uV2FybmluZyBsaW5lLgogICAgICAgICMgUHJvdmVzLWl0LWNhbi1mYWlsOiB3aXRob3V0IHRoZSBub2lzZSBmaWx0ZXIgdGhlIG9sZCBjb2RlIHJldHVybnMgYSBzaWduYXR1cmUKICAgICAgICAjIHN0YXJ0aW5nIHdpdGggdGhlIGRlcHJlY2F0aW9uIHdhcm5pbmcgcGF0aC9tZXNzYWdlLgogICAgICAgIGxhbWJkYSBzaWc6ICJEZXByZWNhdGlvbldhcm5pbmciIG5vdCBpbiBzaWcsCiAgICAgICAgIm5vIERlcHJlY2F0aW9uV2FybmluZyBpbiByZXN1bHQiLAogICAgKSwKICAgIHB5dGVzdC5wYXJhbSgKICAgICAgICAic2FsdmFnZV9mYWlsdXJlIiwKICAgICAgICBTQUxWQUdFX0ZBSUxVUkVfQkxPQiwKICAgICAgICAjIE1VU1QgY29udGFpbiB0aGUgd29ya2NoYWluX2RlY29kZSBkaWFnbm9zdGljLgogICAgICAgICMgUHJvdmVzLWl0LWNhbi1mYWlsOiB0aGUgb2xkIHN1YnN0cmluZyBibGFja2xpc3QgKF9OT0lTRSBjb250YWluaW5nCiAgICAgICAgIyAiRXJyb3Igb3BlbmluZyBpbnB1dCBmaWxlcyIpIHN1cHByZXNzZWQgdGhpcyBleGFjdCBsaW5lLCBsZWF2aW5nIG9ubHkgdGhlCiAgICAgICAgIyB1c2VsZXNzICJwcm9iZSBmYWlsZWQgdG8gcHJvZHVjZSIgZmFsbGJhY2suCiAgICAgICAgbGFtYmRhIHNpZzogImZmbXBlZyByZWZ1c2VkIiBpbiBzaWcgYW5kICJzYWx2YWdlIGZhaWxlZCIgaW4gc2lnLAogICAgICAgICJmZm1wZWcgcmVmdXNlZCAuLi4gc2FsdmFnZSBmYWlsZWQiLAogICAgKSwKICAgIHB5dGVzdC5wYXJhbSgKICAgICAgICAibm90X3Byb2JlX2ZhaWxlZF90b19wcm9kdWNlX3NhbHZhZ2UiLAogICAgICAgIFNBTFZBR0VfRkFJTFVSRV9CTE9CLAogICAgICAgICMgVGhlIGdlbmVyaWMgInByb2JlIGZhaWxlZCB0byBwcm9kdWNlIiBmYWxsYmFjayBtdXN0IE5PVCB3aW4uCiAgICAgICAgIyBQcm92ZXMtaXQtY2FuLWZhaWw6IHdpdGhvdXQgdGhlIGZpeCB0aGF0IGlzIGV4YWN0bHkgd2hhdCB0aGUgb2xkIGNvZGUgcmV0dXJucy4KICAgICAgICBsYW1iZGEgc2lnOiAicHJvYmUgZmFpbGVkIHRvIHByb2R1Y2UiIG5vdCBpbiBzaWcsCiAgICAgICAgIm5vdCB0aGUgcHJvYmUtZmFpbGVkLXRvLXByb2R1Y2UgZmFsbGJhY2siLAogICAgKSwKICAgIHB5dGVzdC5wYXJhbSgKICAgICAgICAic2hvd3dhdmVzcGljX2FkZHJlc3Nfbm9ybWFsaXNlZCIsCiAgICAgICAgU0hPV1dBVkVTUElDX0JMT0IsCiAgICAgICAgIyBUaGUgW1BhcnNlZF9zaG93d2F2ZXNwaWNfMSBAIDB4N2Y4YuKApl0gbGluZSBtdXN0IHN1cnZpdmUgQU5EIHRoZSBhZGRyZXNzCiAgICAgICAgIyBtdXN0IGJlIG5vcm1hbGlzZWQgdG8gMHhBRERSLgogICAgICAgICMgUHJvdmVzLWl0LWNhbi1mYWlsOiByZXZlcnQgdGhlIGFkZHJlc3Mtbm9ybWFsaXNhdGlvbiBzdWIoKSBhbmQgdGhlIHJhdyBoZXgKICAgICAgICAjIGFkZHJlc3MgYXBwZWFycyBpbiB0aGUgb3V0cHV0OyByZW1vdmUgdGhlIGJyYWNrZXQgcGF0dGVybiBhbmQgYSBkaWZmZXJlbnQKICAgICAgICAjIGxpbmUgd2lucy4KICAgICAgICBsYW1iZGEgc2lnOiAiUGFyc2VkX3Nob3d3YXZlc3BpY18xIEAgMHhBRERSIiBpbiBzaWcgYW5kICJUb28gZmV3IHNhbXBsZXMiIGluIHNpZywKICAgICAgICAiW1BhcnNlZF9zaG93d2F2ZXNwaWNfMSBAIDB4QUREUl0gVG9vIGZldyBzYW1wbGVzIiwKICAgICksCiAgICBweXRlc3QucGFyYW0oCiAgICAgICAgImVtYmVkXzQxMyIsCiAgICAgICAgRU1CRURfNDEzX0JMT0IsCiAgICAgICAgIyBUaGUgSFRUUCA0MTMgZXJyb3IgbGluZSBtdXN0IHdpbiBvdmVyIHRoZSBnZW5lcmljICJlbWJlZF9jbGFwIGZhaWxlZCB0byBwcm9kdWNlIi4KICAgICAgICAjIFByb3Zlcy1pdC1jYW4tZmFpbDogd2l0aG91dCB0aGUgZml4IHRoZSBnZW5lcmljIEVSUk9SOiBsaW5lIGZpcmVzIGZpcnN0LCBnaXZpbmcKICAgICAgICAjICJFUlJPUjogZW1iZWRfY2xhcCBmYWlsZWQgdG8gcHJvZHVjZSA8cGF0aD4iIGFzIHRoZSBzaWduYXR1cmUuCiAgICAgICAgbGFtYmRhIHNpZzogIkhUVFAgNDEzIiBpbiBzaWcgYW5kICJjbGFwX3JlbW90ZSIgaW4gc2lnLAogICAgICAgICJjbGFwX3JlbW90ZTogc2VydmVyIHJlamVjdGVkIC4uLiBIVFRQIDQxMyIsCiAgICApLAogICAgcHl0ZXN0LnBhcmFtKAogICAgICAgICJub3RfZW1iZWRfZmFpbGVkX3RvX3Byb2R1Y2UiLAogICAgICAgIEVNQkVEXzQxM19CTE9CLAogICAgICAgICMgVGhlIGZhbGxiYWNrICJlbWJlZF9jbGFwIGZhaWxlZCB0byBwcm9kdWNlIiBtdXN0IE5PVCBhcHBlYXIuCiAgICAgICAgbGFtYmRhIHNpZzogImVtYmVkX2NsYXAgZmFpbGVkIHRvIHByb2R1Y2UiIG5vdCBpbiBzaWcsCiAgICAgICAgIm5vdCB0aGUgZW1iZWQtZmFpbGVkLXRvLXByb2R1Y2UgZmFsbGJhY2siLAogICAgKSwKXQoKIyBBZGRpdGlvbmFsIG5vLUFOU0kgY2FzZXMg4oCUIG9uZSBwZXIgYmxvYiAoZWFjaCBpcyBhIHNlcGFyYXRlIHRlc3Qgc28gYSBmYWlsdXJlIGlzCiMgYXR0cmlidXRlZCB0byB0aGUgcmlnaHQgYmxvYiByYXRoZXIgdGhhbiBnZXR0aW5nIGFuIG9wYXF1ZSBjb21iaW5lZCBhc3NlcnRpb24pLgpBTlNJX0NBU0VTID0gWwogICAgcHl0ZXN0LnBhcmFtKCJhbnNpX3ZlcmlmaWVyIiwgICAgVkVSSUZJRVJfRkFJTFVSRV9CTE9CKSwKICAgIHB5dGVzdC5wYXJhbSgiYW5zaV9zYWx2YWdlIiwgICAgIFNBTFZBR0VfRkFJTFVSRV9CTE9CKSwKICAgIHB5dGVzdC5wYXJhbSgiYW5zaV9zaG93d2F2ZXNwaWMiLFNIT1dXQVZFU1BJQ19CTE9CKSwKICAgIHB5dGVzdC5wYXJhbSgiYW5zaV9lbWJlZF80MTMiLCAgIEVNQkVEXzQxM19CTE9CKSwKXQoKCiMg4pSA4pSAIHRlc3RzIOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgOKUgAoKQHB5dGVzdC5tYXJrLnBhcmFtZXRyaXplKCJuYW1lLGJsb2IscHJlZGljYXRlLGRlc2NyaXB0aW9uIiwgQ0FTRVMpCmRlZiB0ZXN0X3NpZ25hdHVyZV9jb250ZW50KG5hbWUsIGJsb2IsIHByZWRpY2F0ZSwgZGVzY3JpcHRpb24pOgogICAgIiIiVGFibGUtZHJpdmVuOiBlYWNoIGNhc2UgY2hlY2tzIHRoYXQgX3NpZ25hdHVyZSgpIHJldHVybnMgYSBsaW5lIG1hdGNoaW5nIHRoZQogICAgZ2l2ZW4gcHJlZGljYXRlLiAgVGhlIGRlc2NyaXB0aW9uIGZpZWxkIG5hbWVzIHRoZSBleHBlY3RlZCBjb250ZW50IGZvciBjbGFyaXR5LiIiIgogICAgc2lnID0gX3NpZ25hdHVyZShibG9iKQogICAgYXNzZXJ0IHByZWRpY2F0ZShzaWcpLCAoCiAgICAgICAgInRlc3QgJXIgZXhwZWN0ZWQgJXIgYnV0IGdvdDogJXIiICUgKG5hbWUsIGRlc2NyaXB0aW9uLCBzaWcpCiAgICApCgoKQHB5dGVzdC5tYXJrLnBhcmFtZXRyaXplKCJuYW1lLGJsb2IiLCBBTlNJX0NBU0VTKQpkZWYgdGVzdF9ub19hbnNpX2luX3NpZ25hdHVyZShuYW1lLCBibG9iKToKICAgICIiIk5vIGNvbW1pdHRlZCBzaWduYXR1cmUgbWF5IGNvbnRhaW4gYSByYXcgQU5TSSBlc2NhcGUgYnl0ZSAoMHgxYikuCiAgICBQcm92ZXMtaXQtY2FuLWZhaWw6IHJlbW92ZSB0aGUgX0FOU0lfRVNDLnN1YigpIGNhbGwgYW5kIGV2ZXJ5IGJsb2IgdGhhdAogICAgY29udGFpbnMgY29sb3VyZWQgbG9nX2Vycm9yIGxpbmVzIHJldHVybnMgYSBzaWduYXR1cmUgd2l0aCByYXcgZXNjYXBlIGJ5dGVzLAogICAgYnJlYWtpbmcgR1JPVVAgQlkgaW4gYW55IFNRTCBjbGllbnQuIiIiCiAgICBzaWcgPSBfc2lnbmF0dXJlKGJsb2IpCiAgICBhc3NlcnQgaGFzX25vX2Fuc2koc2lnKSwgKAogICAgICAgICJ0ZXN0ICVyOiBzaWduYXR1cmUgY29udGFpbnMgcmF3IEFOU0kgZXNjYXBlIOKAlCBnb3Q6ICVyIiAlIChuYW1lLCBzaWcpCiAgICApCgoKZGVmIHRlc3RfZmFpbGluZ19zdGVwX2NoYWluX2hhbHRlZCgpOgogICAgIiIiX2ZhaWxpbmdfc3RlcCBleHRyYWN0cyB0aGUgc3RlcCBuYW1lIGZyb20gdGhlIGVuZ2luZSdzICdDaGFpbiBoYWx0ZWQnIG1lc3NhZ2UuCiAgICBQcm92ZXMtaXQtY2FuLWZhaWw6IGNoYW5nZSB0aGUgcmVnZXggZ3JvdXAgb3IgdGhlIG1lc3NhZ2UgZm9ybWF0IGFuZCBOb25lIC8gJ3Vua25vd24nCiAgICBpcyByZXR1cm5lZCBpbnN0ZWFkIG9mIHRoZSBzdGVwIG5hbWUuIiIiCiAgICBhc3NlcnQgX2ZhaWxpbmdfc3RlcChDSEFJTl9IQUxURURfQkxPQikgPT0gInByb2JlIgoKCmRlZiB0ZXN0X2ZhaWxpbmdfc3RlcF91bmtub3duX29uX2VtcHR5KCk6CiAgICAiIiJfZmFpbGluZ19zdGVwIHJldHVybnMgJ3Vua25vd24nIHdoZW4gbm8gbWF0Y2ggaXMgZm91bmQuIiIiCiAgICBhc3NlcnQgX2ZhaWxpbmdfc3RlcCgiIikgPT0gInVua25vd24iCiAgICBhc3NlcnQgX2ZhaWxpbmdfc3RlcChOb25lKSA9PSAidW5rbm93biIKCgpkZWYgdGVzdF9zaWduYXR1cmVfbm9fb3V0cHV0KCk6CiAgICAiIiJFZGdlIGNhc2U6IGVtcHR5IC8gd2hpdGVzcGFjZS1vbmx5IGlucHV0IHJldHVybnMgdGhlIHNlbnRpbmVsLiIiIgogICAgYXNzZXJ0IF9zaWduYXR1cmUoIiIpID09ICIobm8gb3V0cHV0KSIKICAgIGFzc2VydCBfc2lnbmF0dXJlKCIgICBcblxuICAiKSA9PSAiKG5vIG91dHB1dCkiCgoKZGVmIHRlc3Rfc2lnbmF0dXJlX2xlbmd0aF9jYXAoKToKICAgICIiIlNpZ25hdHVyZSBpcyBjYXBwZWQgYXQgMTQwIGNoYXJhY3RlcnMuIiIiCiAgICBsb25nX2xpbmUgPSAiVmFsdWVFcnJvcjogIiArICJ4IiAqIDIwMAogICAgc2lnID0gX3NpZ25hdHVyZShsb25nX2xpbmUpCiAgICBhc3NlcnQgbGVuKHNpZykgPD0gMTQwCgoKZGVmIHRlc3RfdW5pY29kZV9kZWNvZGVfZXJyb3Jfc3RpbGxfc2VsZWN0ZWQoKToKICAgICIiIkEgcmVhbCBVbmljb2RlRGVjb2RlRXJyb3IgZXhjZXB0aW9uIG11c3Qgc3RpbGwgd2luIG92ZXIgYSBnZW5lcmljIEVSUk9SOiBsaW5lLgogICAgVGhpcyBndWFyZHMgdGhlIGNhc2UgdGhlIG9yaWdpbmFsIGNvZGUgY29tbWVudCBjYWxsZWQgb3V0OiBsYXRpbi0xIGJ5dGVzIGluIFdBVgogICAgSU5GTyB0YWdzIG11c3Qgbm90IGtpbGwgdGhlIHNpZ25hdHVyZSBmdW5jdGlvbi4KICAgIFByb3Zlcy1pdC1jYW4tZmFpbDogaWYgdGhlIFdhcm5pbmcgZmlsdGVyIGFjY2lkZW50YWxseSBzdXBwcmVzc2VkIGFsbAogICAgU29tZXRoaW5nRXJyb3I6IGxpbmVzLCBvciBpZiB0aGUgcHJlZmVyZW5jZSBvcmRlciBjaGFuZ2VkLCB0aGUgZ2VuZXJpYyBFUlJPUjogbGluZQogICAgd291bGQgd2luIGluc3RlYWQuIiIiCiAgICBibG9iID0gKAogICAgICAgICJFUlJPUjogc29tZSBnZW5lcmljIGVuZ2luZSBtZXNzYWdlXG4iCiAgICAgICAgIlVuaWNvZGVEZWNvZGVFcnJvcjogJ3V0Zi04JyBjb2RlYyBjYW4ndCBkZWNvZGUgYnl0ZSAweDkyIGluIHBvc2l0aW9uIDRcbiIKICAgICkKICAgIHNpZyA9IF9zaWduYXR1cmUoYmxvYikKICAgIGFzc2VydCAiVW5pY29kZURlY29kZUVycm9yIiBpbiBzaWcsICJnb3Q6ICVyIiAlIHNpZwo=
+"""Tests for the quarantine failure-signature extractor.
+
+`_signature()` is the entire diagnostic surface of a library-scale ingest: it reduces a
+failed workchain run's captured stdout+stderr to ONE groupable line, so that "295 failed"
+becomes "which bugs, how many, go look here". On the first complete archive index
+(112,401 ok / 295 failed of 112,696) it produced almost nothing usable, and finding that
+out cost two days of manual sqlite spelunking.
+
+Every blob below is a REAL capture from `ingest_quarantine.stderr_tail` on that run, not a
+fabrication. Each assertion was checked against the pre-fix implementation and goes red
+there — per the house rule that a test is only accepted when it can be proven to fail.
+
+`archive/` is a package but these tests are run from the repo root without installation,
+so the module is loaded by path rather than imported by name.
+"""
+import importlib.util
+import os
+import re
+import sys
+
+import pytest
+
+_HERE = os.path.dirname(os.path.abspath(__file__))
+_MODULE_PATH = os.path.join(os.path.dirname(_HERE), "archive", "ingest_batch.py")
+
+_spec = importlib.util.spec_from_file_location("_ingest_batch_under_test", _MODULE_PATH)
+_ib = importlib.util.module_from_spec(_spec)
+sys.modules["_ingest_batch_under_test"] = _ib
+_spec.loader.exec_module(_ib)
+
+_signature = _ib._signature
+_failing_step = _ib._failing_step
+
+E = "\x1b[0;31m"
+R = "\x1b[0m"
+
+
+# ── the real blobs ───────────────────────────────────────────────────────────────────
+
+VERIFIER_VIOLATION = "\n".join([
+    "Registered output: probe.probe -> /Users/d/.sound-archive/work/e69f/archive/64104005.probe.json (type: json)",
+    E + "[00:21:47] ERROR:" + R + " /Users/d/repos/lufs-workchain/lib/workchain_verify.py:848: "
+    "DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal "
+    "in a future version. Use timezone-aware objects to represent datetimes in UTC: "
+    "datetime.datetime.now(datetime.UTC).",
+    E + "[00:21:47] ERROR:" + R + '   "verified_at": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),',
+    E + "[00:21:47] ERROR:" + R + " ✗ probe — verification FAILED (1 of 5 checks)",
+    E + "[00:21:47] ERROR:" + R + "     probe_facts_plausible: samplerate: 1280 >= 2000  <- VIOLATED",
+    E + "[00:21:47] ERROR:" + R + " Step failed verification: probe",
+    E + "[00:21:47] ERROR:" + R + " Chain halted: step 'probe' failed",
+])
+
+SALVAGE_FAILURE = "\n".join([
+    "probe: ffmpeg refused /Users/d/Samples/Pole Position/Porsche Carrera GT.wav "
+    "(Error opening input files: Invalid data found when processing input) "
+    "and salvage failed (no plausible fmt chunk found)",
+    E + "[06:02:09] ERROR:" + R + " probe failed to produce /Users/d/.sound-archive/work/8b86/archive/Porsche.probe.json",
+    E + "[06:02:09] ERROR:" + R + " Step failed: probe",
+    E + "[06:02:09] ERROR:" + R + " Chain halted: step 'probe' failed",
+])
+
+SHOWWAVESPIC = "\n".join([
+    "[Parsed_showwavespic_1 @ 0x7f8b2c904d40] Too few samples",
+    E + "[03:11:02] ERROR:" + R + " hook failed (clip or waveform missing; decoder=ffmpeg)",
+    E + "[03:11:02] ERROR:" + R + " Chain halted: step 'hook' failed",
+])
+
+EMBED_413 = "\n".join([
+    "Registered output: hook.waveform -> /Users/d/.sound-archive/work/db1b/archive/Working.waveform.png (type: file)",
+    'clap_remote: server rejected the request: HTTP 413 {"detail":"clip is 4244.3 s; '
+    'EMBED_MAX_SECONDS=1800. Refusing to truncate silently."} — not retrying '
+    "(a contract error is not transient)",
+    E + "[00:27:46] ERROR:" + R + " embed_clap failed to produce /Users/d/.sound-archive/work/db1b/archive/Working.embedding.json (backend=remote)",
+    E + "[00:27:46] ERROR:" + R + " Step failed: embed_clap",
+    E + "[00:27:46] ERROR:" + R + " Chain halted: step 'embed_clap' failed",
+])
+
+UNICODE_CRASH = "\n".join([
+    '  File "/Users/d/repos/lufs-workchain/lib/workchain_decode.py", line 91, in run',
+    "    return subprocess.run(cmd, capture_output=True, text=True, errors=None, **kw)",
+    "UnicodeDecodeError: 'utf-8' codec can't decode byte 0xf6 in position 4211: invalid start byte",
+])
+
+ALL_BLOBS = [VERIFIER_VIOLATION, SALVAGE_FAILURE, SHOWWAVESPIC, EMBED_413, UNICODE_CRASH]
+
+
+# ── what the signature must say ──────────────────────────────────────────────────────
+
+@pytest.mark.parametrize("blob,must_contain,must_not_contain", [
+    # The 67-file case. Pre-fix this returned the DeprecationWarning, because it was the
+    # first line matching the generic `ERROR:` pattern.
+    (VERIFIER_VIOLATION, ["samplerate: 1280 >= 2000", "VIOLATED"], ["DeprecationWarning"]),
+    # The salvage case. Pre-fix the informative line was dropped by the substring blacklist
+    # on "Error opening input files", leaving the contentless fallback.
+    (SALVAGE_FAILURE, ["ffmpeg refused", "salvage failed"], ["probe failed to produce"]),
+    # Regression guard on behaviour that already worked — the bracketed ffmpeg line wins and
+    # the heap address is normalised so 156 distinct files collapse to one row.
+    (SHOWWAVESPIC, ["Parsed_showwavespic_1 @ 0xADDR", "Too few samples"], []),
+    # The server's own refusal is the cause; "failed to produce" is the consequence.
+    (EMBED_413, ["413"], ["embed_clap failed to produce"]),
+    # The warning filter must not swallow real exceptions. This is the case the original
+    # preference-order comment was written for and it must keep working.
+    (UNICODE_CRASH, ["UnicodeDecodeError"], []),
+])
+def test_signature_names_the_cause(blob, must_contain, must_not_contain):
+    sig = _signature(blob)
+    for frag in must_contain:
+        assert frag in sig, "expected %r in %r" % (frag, sig)
+    for frag in must_not_contain:
+        assert frag not in sig, "did not expect %r in %r" % (frag, sig)
+
+
+@pytest.mark.parametrize("blob", ALL_BLOBS)
+def test_signature_is_free_of_ansi(blob):
+    """Raw escapes shatter GROUP BY: identical failures stop grouping, and the report is
+    unreadable (`^[[0;31mERROR:`). Pre-fix, every engine-logged signature carried them."""
+    sig = _signature(blob)
+    assert "\x1b" not in sig
+    assert not re.search(r"\[\d;\d\dm", sig)
+
+
+@pytest.mark.parametrize("blob", ALL_BLOBS)
+def test_signature_is_bounded_and_nonempty(blob):
+    sig = _signature(blob)
+    assert 0 < len(sig) <= 140
+    assert sig == sig.strip()
+
+
+def test_signature_of_nothing():
+    assert _signature("") == "(no output)"
+    assert _signature(None) == "(no output)"
+
+
+def test_signature_groups_across_filenames():
+    """The point of the function: two different files failing the same way must produce ONE
+    row. Paths are normalised to <path>, so only the bug remains."""
+    a = SALVAGE_FAILURE.replace("Porsche Carrera GT", "Morris Oxford 1969")
+    assert _signature(a) == _signature(SALVAGE_FAILURE)
+
+
+@pytest.mark.parametrize("blob,step", [
+    (VERIFIER_VIOLATION, "probe"),
+    (SALVAGE_FAILURE, "probe"),
+    (SHOWWAVESPIC, "hook"),
+    (EMBED_413, "embed_clap"),
+])
+def test_failing_step(blob, step):
+    assert _failing_step(blob) == step
+
+
+def test_failing_step_unknown():
+    assert _failing_step("nothing useful here") == "unknown"
