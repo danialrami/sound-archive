@@ -21,12 +21,17 @@ def _ensure(con):
       id INTEGER PRIMARY KEY AUTOINCREMENT, ts TEXT, action TEXT,
       content_sha256 TEXT, session TEXT, weight REAL)""")
 
-def log_event(con, action, sha, session="default"):
+def _iso():
+    return datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+
+def log_event(con, action, sha, session="default", commit=True):
+    """Append one typed action to interaction_log. `commit=False` lets a caller batch several
+    events into a single transaction (the `larc export --record-use` handoff) and commit once."""
     _ensure(con)
     con.execute("INSERT INTO interaction_log(ts,action,content_sha256,session,weight) VALUES(?,?,?,?,?)",
-                (datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"), action, sha, session,
-                 WEIGHTS.get(action, 0.0)))
-    con.commit()
+                (_iso(), action, sha, session, WEIGHTS.get(action, 0.0)))
+    if commit:
+        con.commit()
 
 def sha_for_catalog(con, cat):
     r = con.execute("SELECT content_sha256 FROM assets WHERE catalog_number=?", (cat,)).fetchone()

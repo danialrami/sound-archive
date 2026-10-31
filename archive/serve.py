@@ -93,9 +93,20 @@ class H(BaseHTTPRequestHandler):
             return self._json({"total":q("SELECT COUNT(*) n FROM assets")[0]["n"],
                                "by_scope":{r["scope"]:r["n"] for r in q("SELECT scope,COUNT(*) n FROM assets GROUP BY scope")}})
         if u.path=="/api/query":
-            sql="SELECT content_sha256,catalog_number,filename,scope,duration_s,brightness,spectral_centroid_hz,hook_path,waveform_path FROM assets WHERE 1=1"; p=[]
+            sql=("SELECT content_sha256,catalog_number,filename,scope,duration_s,brightness,"
+                 "spectral_centroid_hz,sample_role,category,root_note,bpm,key,license,source,"
+                 "hook_path,waveform_path FROM assets WHERE 1=1"); p=[]
             if "scope" in qs: sql+=" AND scope=?"; p.append(qs["scope"][0])
             if "bright_max" in qs: sql+=" AND brightness<=?"; p.append(float(qs["bright_max"][0]))
+            # v2 musical / provenance filters (parameterized)
+            if "role" in qs: sql+=" AND sample_role=?"; p.append(qs["role"][0])
+            if "category" in qs: sql+=" AND category=?"; p.append(qs["category"][0])
+            if "root_note" in qs: sql+=" AND root_note=?"; p.append(qs["root_note"][0])
+            if "key" in qs: sql+=" AND key=?"; p.append(qs["key"][0])
+            if "bpm_min" in qs: sql+=" AND bpm>=?"; p.append(float(qs["bpm_min"][0]))
+            if "bpm_max" in qs: sql+=" AND bpm<=?"; p.append(float(qs["bpm_max"][0]))
+            if "license" in qs: sql+=" AND license=?"; p.append(qs["license"][0])
+            if "source" in qs: sql+=" AND source=?"; p.append(qs["source"][0])
             sql+=" ORDER BY indexed_at DESC LIMIT ?"; p.append(int(qs.get("limit",["50"])[0]))
             cmap=_points.cluster_map(sqlite3.connect(DB)); rows=q(sql,p)
             for r in rows: r["cluster"]=cmap.get(r.pop("content_sha256"))
