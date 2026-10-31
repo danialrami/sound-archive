@@ -45,6 +45,14 @@ def _emit(rows, a, extra=None):
               f"{r.get('scope'):<9} {r.get('duration_s')}s  bright={r.get('brightness')}"
               f"  centroid={r.get('spectral_centroid_hz')}Hz{sim}")
 
+def _breakdown(c, col):
+    """{value: count} for a column, or {} if the column isn't present (pre-v2 index)."""
+    try:
+        return {r[col]: r["n"] for r in c.execute(
+            "SELECT %s,COUNT(*) n FROM assets GROUP BY %s" % (col, col)).fetchall()}
+    except sqlite3.OperationalError:
+        return {}
+
 def cmd_stats(a):
     c = connect(a)
     tot = c.execute("SELECT COUNT(*) FROM assets").fetchone()[0]
@@ -52,9 +60,13 @@ def cmd_stats(a):
     bymodel = c.execute("SELECT embed_model,COUNT(*) n FROM assets GROUP BY embed_model").fetchall()
     out = {"db": db_path(a), "total": tot,
            "by_scope": {r["scope"]: r["n"] for r in byscope},
-           "by_model": {r["embed_model"]: r["n"] for r in bymodel}}
+           "by_model": {r["embed_model"]: r["n"] for r in bymodel},
+           "by_role": _breakdown(c, "sample_role"),
+           "by_category": _breakdown(c, "category"),
+           "by_license": _breakdown(c, "license")}
     print(json.dumps(out, indent=2) if a.json else
-          f"index: {out['db']}\n  total: {tot}\n  by scope: {out['by_scope']}\n  by model: {out['by_model']}")
+          f"index: {out['db']}\n  total: {tot}\n  by scope: {out['by_scope']}\n  by model: {out['by_model']}\n"
+          f"  by role: {out['by_role']}\n  by category: {out['by_category']}\n  by license: {out['by_license']}")
 
 def cmd_list(a):
     c = connect(a); q = "SELECT * FROM assets"; p = []
@@ -69,6 +81,16 @@ def cmd_filter(a):
     if a.bright_max is not None: q += " AND brightness<=?"; p.append(a.bright_max)
     if a.dur_min is not None: q += " AND duration_s>=?"; p.append(a.dur_min)
     if a.dur_max is not None: q += " AND duration_s<=?"; p.append(a.dur_max)
+    # v2 musical / provenance filters (all parameterized)
+    if a.role: q += " AND sample_role=?"; p.append(a.role)
+    if a.category: q += " AND category=?"; p.append(a.category)
+    if a.root_note: q += " AND root_note=?"; p.append(a.root_note)
+    if a.key: q += " AND key=?"; p.append(a.key)
+    if a.bpm_min is not None: q += " AND bpm>=?"; p.append(a.bpm_min)
+    if a.bpm_max is not None: q += " AND bpm<=?"; p.append(a.bpm_max)
+    if a.pitch_conf_min is not None: q += " AND pitch_confidence>=?"; p.append(a.pitch_conf_min)
+    if a.source: q += " AND source=?"; p.append(a.source)
+    if a.license: q += " AND license=?"; p.append(a.license)
     q += " ORDER BY brightness LIMIT ?"; p.append(a.limit)
     _emit([dict(r) for r in c.execute(q, p).fetchall()], a)
 
@@ -104,17 +126,28 @@ def cmd_text(a):
           f"feature-heuristic fallback. Real text->audio needs the CLAP/MuQ text encoder.")
     _emit([dict(r) for r in c.execute(q, p).fetchall()], a)
 
+def _common(sp):
+    """Let --db / --json be given after the subcommand too (e.g. `query stats --json`).
+    default=SUPPRESS is essential: a subparser parses into a fresh namespace and copies it
+    back, so a normal default here would clobber a --db/--json given BEFORE the subcommand."""
+    sp.add_argument("--db", default=argparse.SUPPRESS)
+    sp.add_argument("--json", action="store_true", default=argparse.SUPPRESS)
+    return sp
+
 def main():
-    ap = argparse.ArgumentParser(prog="archive query")
+    ap = argparse.ArgumentParser(prog="larc query")
     ap.add_argument("--db"); ap.add_argument("--json", action="store_true")
     sub = ap.add_subparsers(dest="cmd", required=True)
-    sub.add_parser("stats")
-    l = sub.add_parser("list"); l.add_argument("--scope"); l.add_argument("--limit", type=int, default=20)
-    f = sub.add_parser("filter")
-    for name in ("bright-min","bright-max","dur-min","dur-max"): f.add_argument("--"+name, dest=name.replace("-","_"), type=float)
+    _common(sub.add_parser("stats"))
+    l = _common(sub.add_parser("list")); l.add_argument("--scope"); l.add_argument("--limit", type=int, default=20)
+    f = _common(sub.add_parser("filter"))
+    for name in ("bright-min","bright-max","dur-min","dur-max","bpm-min","bpm-max","pitch-conf-min"):
+        f.add_argument("--"+name, dest=name.replace("-","_"), type=float)
+    f.add_argument("--role"); f.add_argument("--category"); f.add_argument("--root-note")
+    f.add_argument("--key"); f.add_argument("--source"); f.add_argument("--license")
     f.add_argument("--scope"); f.add_argument("--limit", type=int, default=20)
-    lk = sub.add_parser("like"); lk.add_argument("catalog"); lk.add_argument("--k", type=int, default=5); lk.add_argument("--scope")
-    t = sub.add_parser("text"); t.add_argument("query"); t.add_argument("--k", type=int, default=5)
+    lk = _common(sub.add_parser("like")); lk.add_argument("catalog"); lk.add_argument("--k", type=int, default=5); lk.add_argument("--scope")
+    t = _common(sub.add_parser("text")); t.add_argument("query"); t.add_argument("--k", type=int, default=5)
     a = ap.parse_args()
     {"stats":cmd_stats,"list":cmd_list,"filter":cmd_filter,"like":cmd_like,"text":cmd_text}[a.cmd](a)
 

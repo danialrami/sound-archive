@@ -6,6 +6,23 @@ It consumes the index that the [lufs-workchain](https://github.com/danialrami/lu
 
 Design record + rationale: `danialrami/agent-knowledge` → `docs/product/sound-archive/`.
 
+## The CLI: `larc`
+
+The canonical entrypoint is **`larc`** (4 chars, per the LUFS primitive CLI naming convention);
+`bin/archive` is kept as a non-breaking alias that delegates to it. Both dispatch the same
+subcommands: `ingest`, `query`, `serve`, `surface`, `act`, `points`, `project`, `migrate`, `export`.
+
+```bash
+larc --version                                    # larc 0.2.0 (sound-archive)
+larc --help
+larc query filter --role one_shot --category bass --license cc0 --json
+larc migrate --db "$ARCHIVE_DB"                    # idempotent v0 -> v2 schema migration
+larc export lufs-1c4541c1 --record-use --json      # lsmp handoff descriptor (+ use flywheel)
+```
+
+`./setup.sh link-cli` symlinks `bin/larc` into `~/.local/bin/larc` so `larc` is on PATH
+(`first-run` calls it too).
+
 ## The split (why two repos)
 
 ```

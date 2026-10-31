@@ -48,7 +48,8 @@ COMMANDS
   ingest          Ingest an audio root into the index (scan → dedup → workchain chain per keeper).
   project         Build the 3D galaxy projection (PCA-3D + k-means; persisted, run after each ingest).
   serve           Serve the galaxy front door + API at /  →  open http://HOST:PORT/
-  first-run       The whole flow: doctor → [provision-clap if --embedder clap] → smoke(1 file)
+  link-cli        Symlink the canonical `larc` CLI into ~/.local/bin (so `larc` is on PATH).
+  first-run       The whole flow: doctor → link-cli → [provision-clap if --embedder clap] → smoke(1 file)
                   → ingest → project. Add --serve to launch serve at the end.
   help            This message.  (also --help, -h)
 
@@ -74,6 +75,7 @@ EXAMPLES
 
   # 2) composable: set up env once, then run stages yourself
   ./setup.sh doctor
+  ./setup.sh link-cli
   ./setup.sh provision-clap
   ./setup.sh ingest --samples ~/Samples/Samples/sampleLibrary --embedder clap \
       --scope-map Komplete=reference Orchs=reference
@@ -125,8 +127,24 @@ ensure_venv(){
   fi
   ok "venv ready — $("$PY" -c 'import numpy,sys;print("python",sys.version.split()[0],"· numpy",numpy.__version__)')"
   # NB: we deliberately do NOT chmod the scripts — modifying the +x bit dirties the working
-  # tree and blocks `git pull`. Everything is invoked via `bash` (setup.sh calls `bash bin/archive`;
+  # tree and blocks `git pull`. Everything is invoked via `bash` (setup.sh calls `bash bin/larc`;
   # you run `bash setup.sh`), so no executable bit is needed.
+}
+
+# Symlink the canonical CLI (bin/larc) into ~/.local/bin so `larc` is callable from anywhere.
+# Idempotent: `ln -sfn` replaces an existing link (including a stale one from a moved checkout).
+cmd_link_cli(){
+  local bindir="$HOME/.local/bin"
+  local link="$bindir/larc"
+  local target="$SA_DIR/bin/larc"
+  [ -f "$target" ] || die "missing $target — is this a sound-archive checkout?"
+  mkdir -p "$bindir"
+  ln -sfn "$target" "$link"
+  ok "linked CLI: $link → $target"
+  case ":$PATH:" in
+    *":$bindir:"*) : ;;
+    *) warn "note: $bindir is not on your PATH — add it to call \`larc\` directly" ;;
+  esac
 }
 
 # Run bin/archive with the venv on PATH so the engine's python3 (features/embed/…) finds numpy.
@@ -195,6 +213,8 @@ cmd_ingest(){
 
 cmd_project(){ ensure_venv; say "building galaxy projection"; arch project --db "$DB"; ok "projection persisted"; }
 
+# `arch` now invokes the canonical `larc` entrypoint (bin/archive remains a delegating alias).
+
 cmd_serve(){
   ensure_venv
   ok "serving the galaxy + API — open  http://$HOST:$PORT/"
@@ -204,6 +224,7 @@ cmd_serve(){
 cmd_first_run(){
   [ -n "$SAMPLES" ] || die "first-run needs --samples PATH"
   cmd_doctor
+  cmd_link_cli
   [ "$EMBEDDER" = clap ] && cmd_provision_clap
   say "smoke test: ingesting ONE file to validate the chain (+ download the model on first CLAP run)"
   ( LIMIT=1 cmd_ingest )
@@ -225,6 +246,7 @@ cmd_first_run(){
 
 case "$CMD" in
   doctor) cmd_doctor;;
+  link-cli) cmd_link_cli;;
   provision-clap) cmd_provision_clap;;
   ingest) cmd_ingest;;
   project) cmd_project;;

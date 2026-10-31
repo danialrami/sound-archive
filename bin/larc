@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# larc — the canonical 4-char LUFS CLI entrypoint for sound-archive.
+#
+#   larc <ingest|query|serve|surface|act|points|project|migrate|export> [ARGS...]
+#   larc --version
+#   larc --help
+#
+# `bin/archive` is retained as a non-breaking compatibility alias that delegates here.
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# Prefer the repo-local venv (created by setup.sh) so numpy is present without touching
+# system Python (PEP 668). Putting .venv/bin on PATH also gives the workchain engine's python3 numpy.
+if [ -x "$here/.venv/bin/python3" ]; then export PATH="$here/.venv/bin:$PATH"; PY="$here/.venv/bin/python3"; else PY="python3"; fi
+
+VERSION="0.2.0"
+
+usage() {
+  cat <<EOF
+larc $VERSION (sound-archive) — the librarian CLI over your audio index
+
+USAGE
+  larc <command> [ARGS...]
+  larc --version
+  larc --help
+
+COMMANDS
+  ingest    Scan + dedup + scope a root and drive the archive-ingest chain per keeper
+  query     Read the index: stats / list / filter / like / text
+  serve     Read-only HTTP/JSON front door (galaxy + API) at /
+  surface   Assemble the ADJ morning surface (weighted blend) for a session
+  act       Log a typed interaction (star|use|played|skip|more_like_this)
+  points    Read the persisted 3D galaxy point-cloud
+  project   Compute + persist the 3D galaxy projection (PCA-3D + k-means)
+  migrate   Idempotently migrate the index schema to v2 (pitch / role / provenance)
+  export    Emit the lsmp handoff descriptor for catalog number(s) / content hashes
+
+Run \`larc <command> --help\` for per-command flags.
+EOF
+}
+
+case "${1:-}" in
+  ""|--help|-h|help) usage; [ -n "${1:-}" ] || exit 1; exit 0 ;;
+  --version|-V) echo "larc $VERSION (sound-archive)"; exit 0 ;;
+esac
+
+cmd="$1"; shift || true
+case "$cmd" in
+  ingest)  exec "$PY" "$here/archive/ingest_batch.py" "$@" ;;
+  query)   exec "$PY" "$here/archive/query.py" "$@" ;;
+  serve)   exec "$PY" "$here/archive/serve.py" "$@" ;;
+  surface) exec "$PY" "$here/archive/surface.py" "$@" ;;
+  act)     exec "$PY" "$here/archive/actlog.py" "$@" ;;
+  points)  exec "$PY" "$here/archive/points.py" points "$@" ;;
+  project) exec "$PY" "$here/archive/points.py" project "$@" ;;
+  migrate) exec "$PY" "$here/archive/migrate.py" "$@" ;;
+  export)  exec "$PY" "$here/archive/export.py" "$@" ;;
+  *) echo "larc: unknown command '$cmd'" >&2; usage >&2; exit 1 ;;
+esac

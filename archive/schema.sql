@@ -2,6 +2,12 @@
 -- v0 (this file): plain sqlite; vector stored as JSON text; KNN brute-forced in query.py.
 -- prod: add the sqlite-vec vec0 virtual table below and mirror `vector` into it; the
 --       assets columns stay identical — only the ANN mechanism changes.
+--
+-- Schema version: 2 (PRAGMA user_version = 2; see archive/migrate.py).
+-- v2 adds the musical (sample_role, category, root_note, f0_hz, pitch_confidence,
+-- bpm_confidence, bars) and provenance (source, source_id, creator, license) columns that
+-- the downstream sample-pack builder (`lsmp`) needs. Every added column is nullable, so an
+-- existing v0 index is migrated in place with ALTER TABLE ... ADD COLUMN only (no rewrite).
 
 CREATE TABLE IF NOT EXISTS assets (
   content_sha256      TEXT PRIMARY KEY,   -- full 64-hex content hash (the key; never the 8-hex display id)
@@ -18,7 +24,25 @@ CREATE TABLE IF NOT EXISTS assets (
   rms_dbfs            REAL,
   brightness          REAL,
   bpm                 REAL,               -- null in v0 (deferred: librosa/essentia or sononym warm-start)
-  key                 TEXT,               -- null in v0
+  key                 TEXT,               -- harmonic scale, e.g. 'D:minor' (distinct from root_note)
+  -- ── v2: musical (role / pitch / tempo) ─────────────────────────────────────
+  sample_role         TEXT CHECK (sample_role IS NULL OR sample_role IN ('one_shot','loop','stem','take')),
+  category            TEXT,               -- 'bd' | 'sd' | 'hh' | 'oh' | 'cp' | 'rim' | 'perc' | 'bass' | 'pad' | 'lead' | 'chord' | 'fx' | 'vox' | 'atmo'
+  root_note           TEXT CHECK (root_note IS NULL
+                                  OR root_note GLOB '[a-g][0-9]'
+                                  OR root_note GLOB '[a-g][#b][0-9]'
+                                  OR root_note GLOB '[a-g]-[0-9]'
+                                  OR root_note GLOB '[a-g][#b]-[0-9]'),  -- lowercase scientific pitch: e1, c4, f#3
+  f0_hz               REAL,               -- detected fundamental frequency in Hz
+  pitch_confidence    REAL,               -- [0.0, 1.0] confidence of fundamental pitch estimate
+  bpm_confidence      REAL,               -- [0.0, 1.0] confidence of BPM estimate
+  bars                INTEGER,            -- estimated bar count for loops (e.g. 1, 2, 4, 8)
+  -- ── v2: provenance / license ───────────────────────────────────────────────
+  source              TEXT,               -- 'own' | 'freesound' | 'openverse' | 'pack'
+  source_id           TEXT,               -- upstream ID (Freesound numeric ID, Openverse UUID, lrex take_id)
+  creator             TEXT,               -- upstream creator / artist handle
+  license             TEXT,               -- 'own' | 'cc0' | 'cc-by' | 'cc-by-sa' | 'reference'
+  -- ── v0 feature/embedding columns ───────────────────────────────────────────
   feature_source      TEXT,               -- native-melstats-v0 | sononym | librosa ...
   embed_model         TEXT,               -- melstats-v0 (placeholder) | laion-clap | muq-mulan
   dim                 INTEGER,
@@ -29,6 +53,13 @@ CREATE TABLE IF NOT EXISTS assets (
 );
 CREATE INDEX IF NOT EXISTS idx_assets_scope ON assets(scope);
 CREATE INDEX IF NOT EXISTS idx_assets_brightness ON assets(brightness);
+-- v2 filter indexes (role / category / pitch / key / tempo / license).
+CREATE INDEX IF NOT EXISTS idx_assets_sample_role ON assets(sample_role);
+CREATE INDEX IF NOT EXISTS idx_assets_category ON assets(category);
+CREATE INDEX IF NOT EXISTS idx_assets_root_note ON assets(root_note);
+CREATE INDEX IF NOT EXISTS idx_assets_key ON assets(key);
+CREATE INDEX IF NOT EXISTS idx_assets_bpm ON assets(bpm);
+CREATE INDEX IF NOT EXISTS idx_assets_license ON assets(license);
 
 -- Tombstoned duplicates (never deleted): every non-keeper points at its keeper.
 CREATE TABLE IF NOT EXISTS dupes (
